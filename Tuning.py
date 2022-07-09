@@ -13,10 +13,14 @@ import xml.etree.ElementTree as ET
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtCore import pyqtSignal, QThread
 
+
+
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+from PyQt5.QtWidgets import QWidget
+
 
 # Pytorch
 import torch 
@@ -77,8 +81,24 @@ class MplCanvas_timing():
         self.canvas.fig.canvas.flush_events() # 畫布刷新self.figs.canvas
         self.layout.addWidget(self.canvas)
 
-class Tuning():
+class HyperOptimizer():
+    def __init__(self, init_value, final_value, method):
+        self.init_value = init_value
+        self.final_value = final_value
+        self.method = method[method]
+
+    def decay(self):
+
+    def update(self, popsize, i, j):
+
+
+class Tuning(QWidget): #要繼承QWidget才能用pyqtSignal!!
+    reset_param_window_signal = pyqtSignal(int, int, np.ndarray)
+    show_param_window_signal = pyqtSignal()
+    update_param_window_signal = pyqtSignal(int, np.ndarray, float)
+
     def __init__(self, ui, setting, capture):
+        super().__init__()
         self.ui = ui
         self.setting = setting
         self.capture = capture
@@ -99,7 +119,8 @@ class Tuning():
         self.hyper_param_plot = MplCanvas_timing(self.hyper_param_canvas, self.hyper_param_layout, color = ['g','r'], label = ['F', 'Cr'])
         self.loss_plot = MplCanvas_timing(self.loss_canvas, self.loss_layout, color = ['b'], label = ['loss'])
 
-    def resetUI(self):
+    def reset(self, popsize, param_change_num, ans):
+        self.reset_param_window_signal.emit(popsize, param_change_num, ans)
         # reset plot
         self.bset_score_plot.reset()
         self.hyper_param_plot.reset()
@@ -111,6 +132,9 @@ class Tuning():
         self.ui.label_target_IQM_1.setText("#")
         self.ui.label_target_IQM_2.setText("#")
         self.ui.label_score.setText("#")
+
+    
+
 
     # Ackley
     # objective function
@@ -128,8 +152,6 @@ class Tuning():
         # 開啟計時器
         self.start_time_counter()
 
-        self.resetUI()
-
         # 參數
         bounds =  self.setting.params['bounds']
         popsize = self.setting.params['population size']
@@ -139,7 +161,6 @@ class Tuning():
         param_change_idx = self.setting.params['param_change_idx'] # 有哪些參數需要更動
         param_change_num = len(param_change_idx)
         # print(bounds)
-        
 
         F = self.setting.params['F']
         Cr = self.setting.params['Cr']
@@ -168,17 +189,22 @@ class Tuning():
         ans = np.zeros(len(param_value))
         ans[param_change_idx] = min_b + np.around(np.random.rand(param_change_num), 4) * diff
         self.ui.label_ans.setText(str(ans))
-        print('ans = ', ans)
+        # print('ans = ', ans)
+        self.reset(popsize, param_change_num, ans[param_change_idx])
+        self.show_param_window_signal.emit()
         
         #measure score
         fitness = []
         IQMs = []
-        for p in pop_denorm:
+        for i in range(popsize):
             # replace fix value
-            param_value[param_change_idx] = p
+            param_value[param_change_idx] = pop_denorm[i]
             f = self.fobj(param_value - ans)
             fitness.append(f)
             IQMs.append([f])
+            self.update_param_window_signal.emit(i,pop_denorm[i],f)
+        
+
         
         #find the best pop(以這個例子是score最小的pop)
         best_idx = np.argmin(fitness) 
@@ -196,13 +222,10 @@ class Tuning():
         #iteration
         for i in range(generations):
             self.ui.label_generation.setText(str(i))
-            print("\n generation", i,"\n")
-            for temp in range(len(pop)):
-                print(pop[temp], fitness[temp])
 
             for j in range(popsize):
-                if j == 3: self.capture.capture()
-                # sleep(0)
+                # if j == 3: self.capture.capture()
+                # sleep(1)
                 self.ui.label_individual.setText(str(j))
 
                 # a = pop[j]
@@ -233,6 +256,7 @@ class Tuning():
                 #mesure score
                 f = self.fobj(param_value - ans)
                 now_IQM = [f]
+
 
                 ##### ML #####
                 # tuning_value = trial - a
@@ -274,6 +298,7 @@ class Tuning():
                     IQMs[j] = [f]
                     fitness[j] = f
                     pop[j] = trial
+                    self.update_param_window_signal.emit(j,trial_denorm,f)
                     #如果突變種比最優種更好
                     if f < fitness[best_idx]:
                         #替換最優種

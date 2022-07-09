@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 import cv2
 
 from UI import Ui_MainWindow
+from Param_window import Param_window
 
 from Setting import Setting
 from Tuning import Tuning
@@ -32,6 +33,9 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # self.ui.btn_select_ROI.clicked.connect(self.select_ROI)
         self.ui.btn_run.clicked.connect(self.run)
         self.capture.capture_fail_signal.connect(self.capture_fail)
+        self.tuning.show_param_window_signal.connect(self.show_param_window)
+        self.tuning.update_param_window_signal.connect(self.update_param_window)
+        self.tuning.reset_param_window_signal.connect(self.reset_param_window)
 
         self.ui.closeEvent = lambda event : self.closeEvent(event)
 
@@ -54,6 +58,14 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.capture.state.acquire()
         self.capture.state.notify()  # Unblock self if waiting.
         self.capture.state.release()
+
+    def reset_param_window(self, popsize, param_change_num, ans):
+        self.param_window = Param_window(popsize, param_change_num, ans)
+    def show_param_window(self):
+        self.param_window.show()
+
+    def update_param_window(self, idx, param_value, score):
+        self.param_window.update(idx, param_value, score)
 
 
     def run(self):

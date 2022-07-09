@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 
 
-class SNR_window(QtWidgets.QMainWindow):
+class Param_window(QtWidgets.QMainWindow):
     def __init__(self, popsize = 15, param_change_num = 7, ans = [0]*7):
         super().__init__()
         self.popsize = popsize
@@ -83,7 +83,7 @@ class SNR_window(QtWidgets.QMainWindow):
 
     def update(self, idx, param_value, score):
         self.fitness[idx] = score
-        self.label_score[idx].setText(str(np.round(score,4)))
+        self.label_score[idx].setText(str(np.round(score,5)))
         color = 255*(1-np.abs(param_value-self.ans))
         for i in range(self.param_change_num):
             self.label_param_value[idx][i].setText(str(np.round(param_value[i],4)))
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     popsize = 15
     param_change_num = 7
-    w = SNR_window(popsize = 15, param_change_num = 7)
+    w = Param_window(popsize = 15, param_change_num = 7)
     pop = np.random.rand(popsize, param_change_num) 
     for i in range(popsize):
         w.update(i, pop[i], np.random.rand())
