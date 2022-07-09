@@ -13,6 +13,7 @@ from PyQt5.QtGui import QImage, QPixmap, QPainter
 from PyQt5.QtCore import QSize
 import numpy as np
 
+
 class ImageViewer(QtWidgets.QLabel):
     pixmap = None
     _sizeHint = QSize()
@@ -45,7 +46,8 @@ class ImageViewer(QtWidgets.QLabel):
 
     def updateScaled(self):
         if self.pixmap:
-            self.scaled = self.pixmap.scaled(self.size(), self.ratio, self.transformation)
+            self.scaled = self.pixmap.scaled(
+                self.size(), self.ratio, self.transformation)
         self.update()
 
     def sizeHint(self):
@@ -62,16 +64,17 @@ class ImageViewer(QtWidgets.QLabel):
         r.moveCenter(self.rect().center())
         qp.drawPixmap(r, self.scaled)
 
+
 class ParamModifyBlock(QtWidgets.QVBoxLayout):
 
-    def __init__(self, parent, title, name = ["Y", "Chroma"], col = [3,4]):
+    def __init__(self, parent, title, name=["Y", "Chroma"], col=[3, 4]):
         super().__init__()
         self.title = title
         self. name = name
         self.checkBoxes_title = []
         self.checkBoxes = []
         self.lineEdits = []
-    
+
         gridLayout = QtWidgets.QGridLayout()
         gridLayout.setContentsMargins(0, 0, 0, 0)
         gridLayout.setHorizontalSpacing(7)
@@ -88,26 +91,27 @@ class ParamModifyBlock(QtWidgets.QVBoxLayout):
         # title_wraper.setStretch(0, 1)
         # title_wraper.setStretch(1, 0)
         # container.setStyleSheet("background-color:rgb(72, 72, 72);")
-        
+
         idx = len(self.checkBoxes)
         for i in range(sum(col)):
-                checkBox = QtWidgets.QCheckBox(parent)
-                checkBox.setToolTip("打勾代表將值固定")
-                self.checkBoxes.append(checkBox)
+            checkBox = QtWidgets.QCheckBox(parent)
+            checkBox.setToolTip("打勾代表將值固定")
+            self.checkBoxes.append(checkBox)
 
-                lineEdit = QtWidgets.QLineEdit(parent)
-                self.lineEdits.append(lineEdit)
+            lineEdit = QtWidgets.QLineEdit(parent)
+            self.lineEdits.append(lineEdit)
 
         for i in range(len(col)):
-                label_name = QtWidgets.QLabel(parent)
-                label_name.setText(name[i])
-                label_name.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-                gridLayout.addWidget(label_name, i, 0)
+            label_name = QtWidgets.QLabel(parent)
+            label_name.setText(name[i])
+            label_name.setAlignment(
+                QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+            gridLayout.addWidget(label_name, i, 0)
 
-                for j in range(col[i]):
-                        gridLayout.addWidget(self.checkBoxes[idx], i, 2+j*2)
-                        gridLayout.addWidget(self.lineEdits[idx], i, 1+j*2)
-                        idx += 1
+            for j in range(col[i]):
+                gridLayout.addWidget(self.checkBoxes[idx], i, 2+j*2)
+                gridLayout.addWidget(self.lineEdits[idx], i, 1+j*2)
+                idx += 1
 
         gridLayout.setColumnStretch(0, 1)
 
@@ -121,9 +125,10 @@ class ParamModifyBlock(QtWidgets.QVBoxLayout):
         for box in self.checkBoxes:
             box.setChecked(checked)
 
+
 class Ui_MainWindow(object):
 
-    def param_range_block(self, parent, title, name=["Y", "Chroma"], row = 2):
+    def param_range_block(self, parent, title, name=["Y", "Chroma"], row=2):
         verticalLayout = QtWidgets.QVBoxLayout()
 
         gridLayout = QtWidgets.QGridLayout()
@@ -143,22 +148,23 @@ class Ui_MainWindow(object):
 
         idx = len(self.label_defult_range)
         for i in range(row):
-                label = QtWidgets.QLabel(parent)
-                label.setText("#")
-                self.label_defult_range.append(label)
+            label = QtWidgets.QLabel(parent)
+            label.setText("#")
+            self.label_defult_range.append(label)
 
-                lineEdit = QtWidgets.QLineEdit(parent)
-                self.lineEdits_range.append(lineEdit)
+            lineEdit = QtWidgets.QLineEdit(parent)
+            self.lineEdits_range.append(lineEdit)
 
         for i in range(1, row+1):
-                label_name = QtWidgets.QLabel(parent)
-                label_name.setText(name[i-1])
-                label_name.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-                gridLayout.addWidget(label_name, i, 0)
+            label_name = QtWidgets.QLabel(parent)
+            label_name.setText(name[i-1])
+            label_name.setAlignment(
+                QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+            gridLayout.addWidget(label_name, i, 0)
 
-                gridLayout.addWidget(self.label_defult_range[idx], i, 1)
-                gridLayout.addWidget(self.lineEdits_range[idx], i, 2)
-                idx += 1
+            gridLayout.addWidget(self.label_defult_range[idx], i, 1)
+            gridLayout.addWidget(self.lineEdits_range[idx], i, 2)
+            idx += 1
 
         gridLayout.setColumnStretch(0, 2)
         gridLayout.setColumnStretch(1, 3)
@@ -173,21 +179,22 @@ class Ui_MainWindow(object):
         gridLayout = QtWidgets.QGridLayout()
         gridLayout.setContentsMargins(0, 0, 0, 0)
         gridLayout.setHorizontalSpacing(7)
-        
-        
-        text = ["F", "Cr", "population size", "generations", "F_decay", "Cr_decay"]
-        tip = ["變異的程度(建議不要超過1)", "替換掉參數的比率(建議不要超過0.5)", "每一輪有幾張照片(不可小於5)\n實際使用建議為15", "總共跑幾輪", "目標的影像品質分數", "對每個分數的權重"]
+
+        text = ["F", "Cr", "population size",
+                "generations", "F_decay", "Cr_decay"]
+        tip = ["變異的程度(建議不要超過1)", "替換掉參數的比率(建議不要超過0.5)",
+               "每一輪有幾張照片(不可小於5)\n實際使用建議為15", "總共跑幾輪", "目標的影像品質分數", "對每個分數的權重"]
         self.hyper_param_title = text
         for i in range(len(text)):
-                label = QtWidgets.QLabel(parent)
-                label.setText(text[i])
+            label = QtWidgets.QLabel(parent)
+            label.setText(text[i])
 
-                lineEdit = QtWidgets.QLineEdit(parent)
-                # label.setToolTip(tip[i])
-                self.lineEdits_hyper_setting.append(lineEdit)
+            lineEdit = QtWidgets.QLineEdit(parent)
+            # label.setToolTip(tip[i])
+            self.lineEdits_hyper_setting.append(lineEdit)
 
-                gridLayout.addWidget(label, i, 0)
-                gridLayout.addWidget(lineEdit, i, 1)
+            gridLayout.addWidget(label, i, 0)
+            gridLayout.addWidget(lineEdit, i, 1)
 
         return gridLayout
 
@@ -195,7 +202,7 @@ class Ui_MainWindow(object):
         tab = QtWidgets.QWidget()
 
         parentGridLayout = QtWidgets.QGridLayout(tab)
-        gridLayout= QtWidgets.QGridLayout()
+        gridLayout = QtWidgets.QGridLayout()
         horizontalLayout = QtWidgets.QHBoxLayout()
 
         # upper
@@ -203,7 +210,7 @@ class Ui_MainWindow(object):
         self.btn_select_project.setText("選擇project")
         self.btn_select_project.setToolTip("選擇tuning project folder")
         gridLayout.addWidget(self.btn_select_project, 0, 0)
-        
+
         self.btn_select_exe = QtWidgets.QPushButton(tab)
         self.btn_select_exe.setText("選擇ParameterParser")
         gridLayout.addWidget(self.btn_select_exe, 1, 0)
@@ -250,9 +257,8 @@ class Ui_MainWindow(object):
         parentGridLayout.setRowStretch(2, 1)
 
         tab.setStyleSheet("QLabel{font-size:12pt; font-family:微軟正黑體; color:white;}"
-                        "QPushButton{font-size:12pt; font-family:微軟正黑體; background-color:rgb(255, 170, 0);}"
-                        "QLineEdit{font-size:12pt; font-family:微軟正黑體; background-color: rgb(255, 255, 255); border: 2px solid gray; border-radius: 5px;}")
-
+                          "QPushButton{font-size:12pt; font-family:微軟正黑體; background-color:rgb(255, 170, 0);}"
+                          "QLineEdit{font-size:12pt; font-family:微軟正黑體; background-color: rgb(255, 255, 255); border: 2px solid gray; border-radius: 5px;}")
 
         return tab
 
@@ -262,14 +268,17 @@ class Ui_MainWindow(object):
         horizontalLayout = QtWidgets.QHBoxLayout(tab)
         horizontalLayout.setObjectName("horizontalLayout")
 
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
 
         verticalLayout = QtWidgets.QVBoxLayout()
         verticalLayout.setContentsMargins(0, 0, 0, 0)
         # self.verticalLayout.addItem(spacerItem)
-        self.ParamModifyBlock.append(ParamModifyBlock(tab, "Noise Profile", ["Y", "Cb", "Cr"], col=[3,4,4]))
+        self.ParamModifyBlock.append(ParamModifyBlock(
+            tab, "Noise Profile", ["Y", "Cb", "Cr"], col=[3, 4, 4]))
         self.ParamModifyBlock.append(ParamModifyBlock(tab, "Denoise Scale"))
-        self.ParamModifyBlock.append(ParamModifyBlock(tab, "Denoise Edge Softness"))
+        self.ParamModifyBlock.append(
+            ParamModifyBlock(tab, "Denoise Edge Softness"))
         self.ParamModifyBlock.append(ParamModifyBlock(tab, "Denoise Weight"))
         verticalLayout.addLayout(self.ParamModifyBlock[0])
         verticalLayout.addLayout(self.ParamModifyBlock[1])
@@ -283,13 +292,16 @@ class Ui_MainWindow(object):
 
         verticalLayout_2 = QtWidgets.QVBoxLayout()
         # self.verticalLayout_2.addItem(spacerItem)
-        verticalLayout_2.addLayout(self.param_range_block(tab, "Noise Profile", ["Y", "Cb", "Cr"], row=3))
-        verticalLayout_2.addLayout(self.param_range_block(tab, "Denoise Scale"))
-        verticalLayout_2.addLayout(self.param_range_block(tab, "Denoise Edge Softness"))
-        verticalLayout_2.addLayout(self.param_range_block(tab, "Denoise Weight"))
+        verticalLayout_2.addLayout(self.param_range_block(
+            tab, "Noise Profile", ["Y", "Cb", "Cr"], row=3))
+        verticalLayout_2.addLayout(
+            self.param_range_block(tab, "Denoise Scale"))
+        verticalLayout_2.addLayout(
+            self.param_range_block(tab, "Denoise Edge Softness"))
+        verticalLayout_2.addLayout(
+            self.param_range_block(tab, "Denoise Weight"))
         verticalLayout_2.addItem(spacerItem)
         horizontalLayout.addLayout(verticalLayout_2)
-
 
         verticalLayout_3 = QtWidgets.QVBoxLayout()
         # self.verticalLayout_3.addItem(spacerItem)
@@ -302,7 +314,7 @@ class Ui_MainWindow(object):
         horizontalLayout.setStretch(2, 2)
 
         tab.setStyleSheet("QLabel{font-size:12pt; font-family:微軟正黑體; color:white;}"
-                        """
+                          """
                         QLineEdit{
                             background-color: rgb(255, 255, 255); 
                             border: 2px solid gray; 
@@ -311,8 +323,8 @@ class Ui_MainWindow(object):
                             font-family:微軟正黑體;
                         }
                         """
-                        )
-        
+                          )
+
         return tab
 
     def tab3_block(self):
@@ -326,7 +338,8 @@ class Ui_MainWindow(object):
 
         self.btn_run = QtWidgets.QPushButton(tab)
         self.btn_run.setText("Run")
-        self.btn_run.setStyleSheet("font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
+        self.btn_run.setStyleSheet(
+            "font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
         horizontalLayout.addWidget(self.btn_run)
 
         gridLayout_score = QtWidgets.QGridLayout()
@@ -379,7 +392,6 @@ class Ui_MainWindow(object):
         label.setText("generation:")
         gridLayout_gen.addWidget(label, 0, 0, 1, 1)
 
-
         label = QtWidgets.QLabel(tab)
         label.setText("individual:")
         gridLayout_gen.addWidget(label, 1, 0, 1, 1)
@@ -397,7 +409,8 @@ class Ui_MainWindow(object):
         self.label_time = QtWidgets.QLabel(tab)
         self.label_time.setText("Time")
         self.label_time.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_time.setStyleSheet("font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
+        self.label_time.setStyleSheet(
+            "font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
         horizontalLayout.addWidget(self.label_time)
 
         horizontalLayout.setStretch(1, 2)
@@ -415,7 +428,8 @@ class Ui_MainWindow(object):
         self.label_best_score_plot = QtWidgets.QLabel(tab_score)
         self.label_best_score_plot.setText("分數圖")
         self.label_best_score_plot.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_best_score_plot.setStyleSheet("background-color:rgb(0, 0, 0)")
+        self.label_best_score_plot.setStyleSheet(
+            "background-color:rgb(0, 0, 0)")
         plot_wraprt.addWidget(self.label_best_score_plot)
         tabWidget_plot.addTab(tab_score, "分數圖")
 
@@ -424,7 +438,8 @@ class Ui_MainWindow(object):
         self.label_hyper_param_plot = QtWidgets.QLabel(tab_score)
         self.label_hyper_param_plot.setText("超參數")
         self.label_hyper_param_plot.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_hyper_param_plot.setStyleSheet("background-color:rgb(0, 0, 0)")
+        self.label_hyper_param_plot.setStyleSheet(
+            "background-color:rgb(0, 0, 0)")
         plot_wraprt.addWidget(self.label_hyper_param_plot)
         tabWidget_plot.addTab(tab_hyper, "超參數")
 
@@ -443,7 +458,7 @@ class Ui_MainWindow(object):
         gridLayout.setRowStretch(1, 1)
 
         tab.setStyleSheet("QLabel{font-size:12pt; font-family:微軟正黑體; color:white;}"
-                "QPushButton{font-size:12pt; font-family:微軟正黑體; background-color:rgb(255, 170, 0);}")
+                          "QPushButton{font-size:12pt; font-family:微軟正黑體; background-color:rgb(255, 170, 0);}")
 
         return tab
 
@@ -483,7 +498,7 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.statusbar.setStyleSheet("color: white")
-        self.statusbar.showMessage('只存在5秒的消息',5000)
+        self.statusbar.showMessage('只存在5秒的消息', 5000)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -499,9 +514,8 @@ class Ui_MainWindow(object):
                 font-size:12pt; font-family:微軟正黑體; background-color:rgb(255, 170, 0);
             }
             """
-        
-        )
 
+        )
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -510,8 +524,10 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
-    QtCore.QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling) # 適應windows縮放
-    QtGui.QGuiApplication.setAttribute(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough) # 設置支持小數放大比例（適應如125%的縮放比）
+    QtCore.QCoreApplication.setAttribute(
+        Qt.AA_EnableHighDpiScaling)  # 適應windows縮放
+    QtGui.QGuiApplication.setAttribute(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)  # 設置支持小數放大比例（適應如125%的縮放比）
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()

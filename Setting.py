@@ -1,6 +1,5 @@
 import json
 import os
-import cv2
 import numpy as np
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QMessageBox
@@ -173,16 +172,6 @@ class Setting():
             self.ui.label_defult_range[i].setText(str(self.params['defult_range'][i]))
             self.ui.lineEdits_range[i].setText(str(self.params['range'][i]))
 
-        img_name = 'capture_0.jpg'
-        if os.path.exists(img_name) and self.params['roi']:
-            img = cv2.imread(img_name)
-            x, y, w, h = self.params['roi']
-            # draw rectangle ROI
-            color = (0, 0, 255) # red
-            thickness = 20 # 寬度 (-1 表示填滿)
-            cv2.rectangle(img, (x, y), (x+w, y+h), color, thickness)
-            # display img
-            self.set_img(img, self.ui.label_ROI_img)
 
         # param fix
         idx = 0
