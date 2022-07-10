@@ -13,7 +13,7 @@ import numpy as np
 
 
 class Param_window(QtWidgets.QMainWindow):
-    def __init__(self, popsize = 15, param_change_num = 7, ans = [0]*7):
+    def __init__(self, popsize=15, param_change_num=7, ans=[0]*7):
         super().__init__()
         self.popsize = popsize
         self.param_change_num = param_change_num
@@ -65,7 +65,7 @@ class Param_window(QtWidgets.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
         self.setStyleSheet("QMainWindow {background-color: rgb(54, 69, 79);}"
-                                """
+                           """
                                 QLabel {
                                     font-size:10pt; font-family:微軟正黑體; font-weight: bold;
                                     color: white;
@@ -73,31 +73,32 @@ class Param_window(QtWidgets.QMainWindow):
                                     padding: 3px;
                                 }
                                 """
-                                """
+                           """
                                 QToolTip { 
                                     background-color: black; 
                                     border: black solid 1px
                                 }
                                 """
-        )
+                           )
 
     def update(self, idx, param_value, score):
         self.fitness[idx] = score
-        self.label_score[idx].setText(str(np.round(score,5)))
+        self.label_score[idx].setText(str(np.round(score, 5)))
         color = 255*(1-np.abs(param_value-self.ans))
         for i in range(self.param_change_num):
-            self.label_param_value[idx][i].setText(str(np.round(param_value[i],4)))
-            self.label_param_value[idx][i].setStyleSheet("color: rgb(255, {}, 255)".format(color[i]))
-
+            self.label_param_value[idx][i].setText(
+                str(np.round(param_value[i], 4)))
+            self.label_param_value[idx][i].setStyleSheet(
+                "color: rgb(255, {}, 255)".format(color[i]))
 
         order = np.argsort(self.fitness)
         # print(order)
-        color = 255 - np.arange(0,150,150/self.popsize)
+        color = 255 - np.arange(0, 150, 150/self.popsize)
         # print(color)
         print()
         for i, c in zip(order, color):
-            self.label_score[i].setStyleSheet("color: rgb({0}, {0}, {0})".format(c))
-
+            self.label_score[i].setStyleSheet(
+                "color: rgb({0}, {0}, {0})".format(c))
 
 
 if __name__ == "__main__":
@@ -105,8 +106,8 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     popsize = 15
     param_change_num = 7
-    w = Param_window(popsize = 15, param_change_num = 7)
-    pop = np.random.rand(popsize, param_change_num) 
+    w = Param_window(popsize=15, param_change_num=7)
+    pop = np.random.rand(popsize, param_change_num)
     for i in range(popsize):
         w.update(i, pop[i], np.random.rand())
     w.show()

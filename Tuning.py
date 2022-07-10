@@ -1,3 +1,4 @@
+from turtle import update
 import torch
 import torch.nn as nn
 from PyQt5.QtWidgets import QWidget
@@ -92,6 +93,8 @@ class HyperOptimizer():
             self.method = self.step_decay
         if method == "exponantial":
             self.method = self.exponantial_decay
+        if method == "exponantial_reverse":
+            self.method = self.exponantial_reverse
 
     def step_decay(self, generation):
         v = self.init_value - self.decay_value * generation
@@ -102,7 +105,12 @@ class HyperOptimizer():
             np.exp(-self.rate * (generation)) + self.final_value
         return v
 
+    def exponantial_reverse(self, generation):
+        v = self.init_value + (0.05*(generation))**np.exp(0.5)
+        return min(v, self.final_value)
+
     def update(self, generation):
+        generation = generation % 10
         return self.method(generation)
 
 
@@ -130,42 +138,15 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         # plot
         self.bset_score_plot = MplCanvas_timing(
-            self.best_score_canvas, self.best_score_layout, color=['r'], label=['score'])
+            self.best_score_canvas, self.best_score_layout, color=['r', 'g'], label=['score'])
         self.hyper_param_plot = MplCanvas_timing(
-            self.hyper_param_canvas, self.hyper_param_layout, color=['g', 'r'], label=['F', 'Cr'])
+            self.hyper_param_canvas, self.hyper_param_layout, color=['g', 'r', 'b'], label=['F', 'Cr', 'update_rate'])
         self.loss_plot = MplCanvas_timing(
             self.loss_canvas, self.loss_layout, color=['b'], label=['loss'])
 
-    def reset(self, popsize, param_change_num, ans):
-        self.reset_param_window_signal.emit(popsize, param_change_num, ans)
-        # reset plot
-        self.bset_score_plot.reset()
-        self.hyper_param_plot.reset()
-        # self.loss_plot.reset()
-        self.ui.label_generation.setText("#")
-        self.ui.label_individual.setText("#")
-        self.ui.label_now_IQM_1.setText("#")
-        self.ui.label_now_IQM_2.setText("#")
-        self.ui.label_target_IQM_1.setText("#")
-        self.ui.label_target_IQM_2.setText("#")
-        self.ui.label_score.setText("#")
-
-    # Ackley
-    # objective function
-    def fobj(self, X):
-        firstSum = 0.0
-        secondSum = 0.0
-        for c in X:
-            firstSum += c**2.0
-            secondSum += math.cos(2.0*math.pi*c)
-        n = float(len(X))
-        return -20.0*math.exp(-0.2*math.sqrt(firstSum/n)) - math.exp(secondSum/n) + 20 + math.e
-
     def run_Ackley(self, callback):
-        # self.capture.capture_fail_signal.emit()
         # 開啟計時器
         self.start_time_counter()
-
         # 參數
         bounds = self.setting.params['bounds']
         popsize = self.setting.params['population size']
@@ -181,10 +162,12 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         # F_decay = self.setting.params['F_decay']
         # Cr_decay = self.setting.params['Cr_decay']
 
+        # F_optimiter = HyperOptimizer(
+        #     init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
         F_optimiter = HyperOptimizer(
-            init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
+            init_value=0.3, final_value=0.8, method="exponantial_reverse")
         Cr_optimiter = HyperOptimizer(
-            init_value=0.9, final_value=0.5, method="exponantial", rate=0.3)
+            init_value=0.9, final_value=0.5, method="exponantial", rate=0.2)
         # print('F = ', F)
 
         ##### ML #####
@@ -237,8 +220,11 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
 
+        update_rate = 0
         # iteration
         for i in range(generations):
+            update_times = 0
+
             self.ui.label_generation.setText(str(i))
             F = F_optimiter.update(i)
             Cr = Cr_optimiter.update(i)
@@ -313,6 +299,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 # 如果突變種比原本的更好
                 if f < fitness[j]:
+                    update_times += 1
                     # 替換原本的個體
                     IQMs[j] = [f]
                     fitness[j] = f
@@ -338,12 +325,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     self.is_run = False
                 self.bset_score_plot.update([fitness[best_idx]])
                 # loss_plot.update([loss.detach().item()]) # plot loss
-                self.hyper_param_plot.update([F, Cr])
+                self.hyper_param_plot.update(
+                    [F, Cr, update_rate])
 
                 if not self.is_run:
                     callback()
                     sys.exit()
-
+            update_rate = update_times/popsize
         callback()
 
     def set_time_counter(self):
@@ -366,3 +354,28 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.timer.daemon = True
         # 執行該子執行緒
         self.timer.start()
+
+    def reset(self, popsize, param_change_num, ans):
+        self.reset_param_window_signal.emit(popsize, param_change_num, ans)
+        # reset plot
+        self.bset_score_plot.reset()
+        self.hyper_param_plot.reset()
+        # self.loss_plot.reset()
+        self.ui.label_generation.setText("#")
+        self.ui.label_individual.setText("#")
+        self.ui.label_now_IQM_1.setText("#")
+        self.ui.label_now_IQM_2.setText("#")
+        self.ui.label_target_IQM_1.setText("#")
+        self.ui.label_target_IQM_2.setText("#")
+        self.ui.label_score.setText("#")
+
+    # Ackley
+    # objective function
+    def fobj(self, X):
+        firstSum = 0.0
+        secondSum = 0.0
+        for c in X:
+            firstSum += c**2.0
+            secondSum += math.cos(2.0*math.pi*c)
+        n = float(len(X))
+        return -20.0*math.exp(-0.2*math.sqrt(firstSum/n)) - math.exp(secondSum/n) + 20 + math.e
