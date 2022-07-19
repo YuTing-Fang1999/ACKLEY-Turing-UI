@@ -101,16 +101,25 @@ class HyperOptimizer():
         return v
 
     def exponantial_decay(self, generation):
+        # if generation % 15 == 0: 
+        #     self.init_value+=0.1
+            # self.final_value-=0.1
+
         v = (self.init_value-self.final_value) * \
-            np.exp(-self.rate * (generation)) + self.final_value
+            np.exp(-self.rate * (generation % 15)) + self.final_value
+
         return v
 
     def exponantial_reverse(self, generation):
-        v = self.init_value + (0.05*(generation))**np.exp(0.5)
+        if generation % 15 == 0: 
+            self.init_value+=0.1
+            self.rate-=0.01
+
+        v = self.init_value + (self.rate*(generation % 15))**np.exp(0.5)
+        
         return min(v, self.final_value)
 
     def update(self, generation):
-        generation = generation % 15
         return self.method(generation)
 
 
@@ -165,9 +174,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         # F_optimiter = HyperOptimizer(
         #     init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
         Cr_optimiter = HyperOptimizer(
-            init_value=0.3, final_value=0.8, method="exponantial_reverse")
+            init_value=0.3, final_value=0.9, method="exponantial_reverse", rate = 0.05)
         F_optimiter = HyperOptimizer(
-            init_value=0.6, final_value=0.2, method="exponantial", rate=0.2)
+            init_value=0.7, final_value=0.3, method="exponantial", rate=0.2)
         # print('F = ', F)
 
         ##### ML #####
