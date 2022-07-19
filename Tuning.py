@@ -154,6 +154,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             self.loss_canvas, self.loss_layout, color=['b'], label=['loss'])
 
     def run_Ackley(self, callback):
+        # self.capture.capture()
         # 開啟計時器
         self.start_time_counter()
         # 參數
@@ -239,7 +240,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             Cr = Cr_optimiter.update(i)
 
             for j in range(popsize):
-                # if j == 3: self.capture.capture()
                 # sleep(0.5)
                 self.ui.label_individual.setText(str(j))
 

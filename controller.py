@@ -30,8 +30,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.btn_run.clicked.connect(self.run)
         self.capture.capture_fail_signal.connect(self.capture_fail)
         self.tuning.show_param_window_signal.connect(self.show_param_window)
-        self.tuning.update_param_window_signal.connect(
-            self.update_param_window)
+        self.tuning.update_param_window_signal.connect(self.update_param_window)
         self.tuning.reset_param_window_signal.connect(self.reset_param_window)
 
         self.ui.closeEvent = lambda event: self.closeEvent(event)
@@ -52,7 +51,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         print(roi)
 
     def capture_fail(self):
-        QMessageBox.about(self, "拍攝未成功", "拍攝未成功\n請多按幾次拍照鍵測試\n檢查完後按ok鍵再次拍攝")
+        QMessageBox.about(self, "拍攝未成功", "拍攝未成功\n請多按幾次拍照鍵測試\n再按ok鍵重新拍攝")
         self.capture.state.acquire()
         self.capture.state.notify()  # Unblock self if waiting.
         self.capture.state.release()
