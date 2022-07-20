@@ -1,7 +1,8 @@
-from turtle import update
+
+# Pytorch
 import torch
 import torch.nn as nn
-from PyQt5.QtWidgets import QWidget
+
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import sys
@@ -11,15 +12,12 @@ from time import sleep
 import math
 import numpy as np
 
-from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QWidget
 from PyQt5.QtCore import pyqtSignal
 
 
 import matplotlib
 matplotlib.use('Qt5Agg')
-
-
-# Pytorch
 
 
 class My_Model(nn.Module):
