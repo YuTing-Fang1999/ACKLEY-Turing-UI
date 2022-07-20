@@ -9,6 +9,7 @@ from Tuning import Tuning
 from Capture import Capture
 
 import threading
+import torch
 
 
 class MainWindow_controller(QtWidgets.QMainWindow):
@@ -41,6 +42,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # ret = QMessageBox.information(self,"","確定要關閉嗎", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         # if ret == QMessageBox.Yes:
         self.setting.write_setting()
+        torch.save(self.tuning.model.state_dict(), "My_Model")
         self.param_window.close()
 
         # if ret == QMessageBox.No:  # continue run

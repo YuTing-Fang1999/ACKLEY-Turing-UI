@@ -435,7 +435,7 @@ class Ui_MainWindow(object):
 
         tab_hyper = QtWidgets.QWidget()
         plot_wraprt = QtWidgets.QVBoxLayout(tab_hyper)
-        self.label_hyper_param_plot = QtWidgets.QLabel(tab_score)
+        self.label_hyper_param_plot = QtWidgets.QLabel(tab_hyper)
         self.label_hyper_param_plot.setText("超參數")
         self.label_hyper_param_plot.setAlignment(QtCore.Qt.AlignCenter)
         self.label_hyper_param_plot.setStyleSheet(
@@ -445,12 +445,21 @@ class Ui_MainWindow(object):
 
         tab_loss = QtWidgets.QWidget()
         plot_wraprt = QtWidgets.QVBoxLayout(tab_loss)
-        self.label_loss_plot = QtWidgets.QLabel(tab_score)
+        self.label_loss_plot = QtWidgets.QLabel(tab_loss)
         self.label_loss_plot.setText("loss")
         self.label_loss_plot.setAlignment(QtCore.Qt.AlignCenter)
         self.label_loss_plot.setStyleSheet("background-color:rgb(0, 0, 0)")
         plot_wraprt.addWidget(self.label_loss_plot)
         tabWidget_plot.addTab(tab_loss, "loss")
+
+        tab_update = QtWidgets.QWidget()
+        plot_wraprt = QtWidgets.QVBoxLayout(tab_update)
+        self.label_update_plot = QtWidgets.QLabel(tab_update)
+        self.label_update_plot.setText("update rate")
+        self.label_update_plot.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_update_plot.setStyleSheet("background-color:rgb(0, 0, 0)")
+        plot_wraprt.addWidget(self.label_update_plot)
+        tabWidget_plot.addTab(tab_update, "update rate")
 
         gridLayout.addWidget(tabWidget_plot, 1, 0, 1, 1)
         # gridLayout.addWidget(self.label_best_score_plot, 1, 0, 1, 1)
