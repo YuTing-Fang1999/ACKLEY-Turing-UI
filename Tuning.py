@@ -11,6 +11,7 @@ import math
 import numpy as np
 import json
 import os
+import random
 
 from PyQt5.QtWidgets import QHBoxLayout, QWidget
 from PyQt5.QtCore import pyqtSignal
@@ -28,15 +29,13 @@ class My_Model(nn.Module):
         super(My_Model, self).__init__()
         self.layers = nn.Sequential(
             nn.Linear(input_dim, 16),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(16, 32),
-            nn.ReLU(),
-            nn.Linear(32, 64),
-            nn.ReLU(),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Linear(32, output_dim),
-            nn.Tanh()
+            nn.Tanh(),
+            nn.Linear(32, 16),
+            nn.Tanh(),
+            nn.Linear(16, 1),
+            nn.Tanh(),
         )
 
     def forward(self, x):
@@ -55,7 +54,15 @@ class MyDataset(Dataset):
         self.x = torch.FloatTensor(x)
 
     def __getitem__(self, idx):
-        return self.x[idx], self.y[idx]
+        # 隨機取另一個分數
+        # idx2 = random.randint(0, self.__len__()-1)
+        # x = self.x[idx]-self.x[idx2]
+        # y = self.y[idx]-self.y[idx2]
+        # y = torch.FloatTensor(np.tanh(y))
+
+        x = self.x[idx]
+        y = np.tanh(self.y[idx])
+        return x, y
 
     def __len__(self):
         return len(self.y)
@@ -99,6 +106,8 @@ class MplCanvas_timing():
         self.canvas.fig.canvas.draw()  # 這裡注意是畫布重繪，self.figs.canvas
         self.canvas.fig.canvas.flush_events()  # 畫布刷新self.figs.canvas
         self.layout.addWidget(self.canvas)
+
+        if len(self.data)>=600: self.data = []
 
 
 class HyperOptimizer():
@@ -150,7 +159,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
     def __init__(self, ui, setting, capture):
         super().__init__()
-        self.USING_ML = True
+        self.model = None
+        self.USING_ML = False
+        self.ML_TRAIN = True
 
         self.ui = ui
         self.setting = setting
@@ -260,7 +271,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             Cr = Cr_optimiter.update(i)
 
             ##### ML #####
-            if self.USING_ML and i >= 1:
+            if self.USING_ML and self.ML_TRAIN and i>0:
                 # with open("dataset.json", "w") as outfile:
                 #     data = {}
                 #     data["x_train"] = list(x_train)
@@ -268,9 +279,10 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 #     json.dump(data, outfile)
 
                 train_dataset = MyDataset(x_train, y_train)
-                train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+                train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
                 self.model.train()
-                for epoch in range(50):
+                epoch_n = min(i*10, 50)
+                for epoch in range(epoch_n):
                     loss_record = []
                     for x, y in train_loader:
                         output = self.model(x)
@@ -286,11 +298,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             ##### ML #####
 
             for j in range(popsize):
-                # if j == 3: self.capture.capture()
-                # sleep(0.5)
+                # sleep(1)
                 self.ui.label_individual.setText(str(j))
 
-                # a = pop[j]
                 # select all pop except j
                 idxs = [idx for idx in range(popsize) if idx != j]
                 # random select two pop except j
@@ -318,49 +328,59 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 # mesure score
                 f = self.fobj(param_value - ans)
 
+                if f < fitness[j]: update_times += 1
+
+                if self.USING_ML:
+                    times = 0
+                    pred = self.model(torch.FloatTensor([(trial - pop[j]).tolist()])).item()
+                    while pred > 0 and times<5: # 如果預測分數會上升就重找參數
+                        times+=1
+                        # select all pop except j
+                        idxs = [idx for idx in range(popsize) if idx != j]
+                        # random select two pop except j
+                        a, b, c = pop[np.random.choice(idxs, 3, replace=False)]
+
+                        # Mutation
+                        mutant = np.clip(a + F*(b - c), 0, 1)
+
+                        # random choose the dimensions
+                        cross_points = np.random.rand(param_change_num) < Cr
+                        # if no dimensions be selected
+                        if not np.any(cross_points):
+                            # random choose one dimensions
+                            cross_points[np.random.randint(0, param_change_num)] = True
+
+                        # 隨機替換突變
+                        trial = np.where(cross_points, mutant, pop[j])
+                        pred = self.model(torch.FloatTensor([(trial - pop[j]).tolist()])).item()
+
+                # denormalize
+                trial_denorm = min_b + trial * diff
+
+                # add fix value
+                param_value[param_change_idx] = trial_denorm
+
+                # mesure score
+                f = self.fobj(param_value - ans)
+
                 ##### ML #####
                 if self.USING_ML:
-                    dif_value = trial - pop[j]
-                    # sign_value[sign_value>0] = 1
-                    # sign_value[sign_value<0] = -1
+                    if f < fitness[j]: acc_times += 1
+                    else:
+                        x_train.append((trial - pop[j]).tolist())
+                        y_train.append([f-fitness[j]])
 
-                    score = f-fitness[j]
-                    # if score>0: score = 1
-                    # else: score = -1
-                    # print(dif_value.tolist())
-                    x_train.append(dif_value.tolist())
-                    y_train.append([score])
-                    
-                    # eval
-                    if i >= 0:
-                        self.model.eval()
-                        pred = self.model(torch.FloatTensor([dif_value.tolist()])).item()
-                        if pred > 0: # 如果預測分數會上升
-                            mutant = np.clip(a - F*(b - c), 0, 1)
-                            trial = np.where(cross_points, mutant, pop[j])
-                            dif_value = trial - pop[j]
-                            # denormalize
-                            trial_denorm = min_b + trial * diff
-                            # add fix value
-                            param_value[param_change_idx] = trial_denorm
-                            # mesure score
-                            f2 = self.fobj(param_value - ans)
-                            score = f2-fitness[j]
-
-                            x_train.append(dif_value.tolist())
-                            y_train.append([score])
-
-                        if score<0:
-                            acc_times+=1
+                    x_train.append((trial - pop[j]).tolist())
+                    y_train.append([f-fitness[j]])
                 ##### ML #####
 
                 # 如果突變種比原本的更好
                 if f < fitness[j]:
-                    update_times += 1
                     # 替換原本的個體
                     fitness[j] = f
                     pop[j] = trial
                     self.update_param_window_signal.emit(j, trial_denorm, f)
+
                     # 如果突變種比最優種更好
                     if f < fitness[best_idx]:
                         # 替換最優種
@@ -374,11 +394,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                                     str(np.around(param_value[ParamModifyBlock_idx], 4)))
                                 ParamModifyBlock_idx += 1
 
-                        self.ui.label_score.setText(
-                            str(np.round(fitness[best_idx], 5)))
+                        self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
 
-                if f <= 1e-5:
-                    self.is_run = False
+                if f <= 1e-6: self.is_run = False
                 self.bset_score_plot.update([fitness[best_idx]])
                 # self.hyper_param_plot.update([F, Cr])
                 self.update_plot.update([acc_rate, update_rate])
@@ -388,6 +406,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     sys.exit()
             update_rate = update_times/popsize
             acc_rate = acc_times/popsize
+            if acc_rate >= 1: self.ML_TRAIN = False
         callback()
 
     def set_time_counter(self):
@@ -417,6 +436,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.bset_score_plot.reset()
         self.hyper_param_plot.reset()
         self.loss_plot.reset()
+        self.update_plot.reset()
         self.ui.label_generation.setText("#")
         self.ui.label_individual.setText("#")
         self.ui.label_now_IQM_1.setText("#")
