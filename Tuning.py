@@ -166,8 +166,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.ui = ui
         self.setting = setting
         self.capture = capture
-
-        ##### plot #####
         self.is_run = False
 
         # plot
