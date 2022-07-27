@@ -167,7 +167,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         F_optimiter = HyperOptimizer(
             init_value=0.3, final_value=0.9, method="exponantial_reverse")
         Cr_optimiter = HyperOptimizer(
-            init_value=1, final_value=0.5, method="exponantial", rate=0.2)
+            init_value=0.9, final_value=0.4, method="exponantial", rate=0.2)
         # print('F = ', F)
 
         ##### ML #####
