@@ -122,10 +122,7 @@ class Setting():
         # param
         key = self.ui.hyper_param_title
         for i in range(len(key)):
-            if i//2 == 0: self.params[key[i]] = float(self.ui.lineEdits_hyper_setting[i].text())
-            if i//2 == 1: self.params[key[i]] = int(self.ui.lineEdits_hyper_setting[i].text())
-            if i//2 == 2: self.params[key[i]] = float(self.ui.lineEdits_hyper_setting[i].text())
-            # if i//2 == 2: self.params[key[i]] = json.loads(self.ui.lineEdits_hyper_setting[i].text())
+            self.params[key[i]] = int(self.ui.lineEdits_hyper_setting[i].text())
 
         # range
         self.params['range'] = []
@@ -154,6 +151,10 @@ class Setting():
 
         self.params['param_change_idx'] = param_change_idx
         self.params['param_value'] = param_value
+
+        # ML
+        self.params['pretrain_model'] = self.ui.pretrain_model.isChecked()
+        self.ML_TRAIN = self.params['train'] = self.ui.train.isChecked()
 
         print("set param successfully!")
 

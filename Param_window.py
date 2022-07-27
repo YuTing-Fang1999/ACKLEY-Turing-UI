@@ -83,11 +83,10 @@ class Param_window(QtWidgets.QMainWindow):
 
     def update(self, idx, param_value, score):
         self.fitness[idx] = score
-        self.label_score[idx].setText(str(np.round(score, 5)))
+        self.label_score[idx].setText(str(np.round(score, 9)))
         color = 255*(1-np.abs(param_value-self.ans))
         for i in range(self.param_change_num):
-            self.label_param_value[idx][i].setText(
-                str(np.round(param_value[i], 4)))
+            self.label_param_value[idx][i].setText(str(param_value[i]))
             self.label_param_value[idx][i].setStyleSheet(
                 "color: rgb(255, {}, 255)".format(color[i]))
 

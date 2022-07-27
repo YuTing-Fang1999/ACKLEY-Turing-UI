@@ -180,10 +180,7 @@ class Ui_MainWindow(object):
         gridLayout.setContentsMargins(0, 0, 0, 0)
         gridLayout.setHorizontalSpacing(7)
 
-        text = ["F", "Cr", "population size",
-                "generations", "F_decay", "Cr_decay"]
-        tip = ["變異的程度(建議不要超過1)", "替換掉參數的比率(建議不要超過0.5)",
-               "每一輪有幾張照片(不可小於5)\n實際使用建議為15", "總共跑幾輪", "目標的影像品質分數", "對每個分數的權重"]
+        text = ["population size", "generations"]
         self.hyper_param_title = text
         for i in range(len(text)):
             label = QtWidgets.QLabel(parent)
@@ -342,41 +339,23 @@ class Ui_MainWindow(object):
             "font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
         horizontalLayout.addWidget(self.btn_run)
 
-        gridLayout_score = QtWidgets.QGridLayout()
+        gridLayout_ML = QtWidgets.QGridLayout()
+
+        self.pretrain_model = QtWidgets.QCheckBox(tab)
+        gridLayout_ML.addWidget(self.pretrain_model, 0, 0, 1, 1)
+
+        self.train = QtWidgets.QCheckBox(tab)
+        gridLayout_ML.addWidget(self.train, 1, 0, 1, 1)
 
         label = QtWidgets.QLabel(tab)
-        label.setText("目標分數")
-        gridLayout_score.addWidget(label, 1, 0, 1, 1)
+        label.setText("pretrain model")
+        gridLayout_ML.addWidget(label, 0, 1, 1, 1)
 
         label = QtWidgets.QLabel(tab)
-        label.setText("目前分數")
-        gridLayout_score.addWidget(label, 2, 0, 1, 1)
+        label.setText("training")
+        gridLayout_ML.addWidget(label, 1, 1, 1, 1)
 
-        label = QtWidgets.QLabel(tab)
-        label.setText("sharpness")
-        gridLayout_score.addWidget(label, 0, 1, 1, 1)
-
-        label = QtWidgets.QLabel(tab)
-        label.setText("noise")
-        gridLayout_score.addWidget(label, 0, 2, 1, 1)
-
-        self.label_target_IQM_1 = QtWidgets.QLabel(tab)
-        gridLayout_score.addWidget(self.label_target_IQM_1, 1, 1, 1, 1)
-
-        self.label_target_IQM_2 = QtWidgets.QLabel(tab)
-        gridLayout_score.addWidget(self.label_target_IQM_2, 1, 2, 1, 1)
-
-        self.label_now_IQM_1 = QtWidgets.QLabel(tab)
-        gridLayout_score.addWidget(self.label_now_IQM_1, 2, 1, 1, 1)
-
-        self.label_now_IQM_2 = QtWidgets.QLabel(tab)
-        gridLayout_score.addWidget(self.label_now_IQM_2, 2, 2, 1, 1)
-
-        gridLayout_score.setColumnStretch(0, 1)
-        gridLayout_score.setColumnStretch(1, 2)
-        gridLayout_score.setColumnStretch(2, 2)
-
-        horizontalLayout.addLayout(gridLayout_score)
+        horizontalLayout.addLayout(gridLayout_ML)
 
         label = QtWidgets.QLabel(tab)
         label.setText("總分")
@@ -413,10 +392,10 @@ class Ui_MainWindow(object):
             "font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
         horizontalLayout.addWidget(self.label_time)
 
-        horizontalLayout.setStretch(1, 2)
-        horizontalLayout.setStretch(3, 1)
-        horizontalLayout.setStretch(4, 1)
-        horizontalLayout.setStretch(5, 1)
+        # horizontalLayout.setStretch(1, 2)
+        # horizontalLayout.setStretch(3, 1)
+        # horizontalLayout.setStretch(4, 1)
+        # horizontalLayout.setStretch(5, 1)
         horizontalLayout.setContentsMargins(7, 0, 7, -1)
         horizontalLayout.setSpacing(10)
 

@@ -160,8 +160,8 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
     def __init__(self, ui, setting, capture):
         super().__init__()
         self.model = None
-        self.USING_ML = False
-        self.ML_TRAIN = True
+        self.ML_PRETRAIN_MODEL = False
+        self.ML_TRAIN = False
 
         self.ui = ui
         self.setting = setting
@@ -207,9 +207,12 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         # print('F = ', F)
 
         ##### ML #####
-        if self.USING_ML:
+        self.ML_PRETRAIN_MODEL = self.setting.params['pretrain_model']
+        self.ML_TRAIN = self.setting.params['train']
+
+        if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
             self.model = My_Model(param_change_num, 1)
-            if os.path.exists("My_Model"):
+            if self.ML_PRETRAIN_MODEL and os.path.exists("My_Model"):
                 self.model.load_state_dict(torch.load("My_Model"))
             criterion = nn.MSELoss(reduction='mean')
             optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-4)
@@ -217,6 +220,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         # 初始化20群(population) normalize: [0, 1]
         pop = np.random.rand(popsize, param_change_num)
+        pop = np.round(pop, 8)
         # pop = np.array([[0.5]*4] * popsize)
 
         # 取得每個參數的邊界
@@ -269,7 +273,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             Cr = Cr_optimiter.update(i)
 
             ##### ML #####
-            if self.USING_ML and self.ML_TRAIN and i>0:
+            if self.ML_TRAIN and i>0:
                 # with open("dataset.json", "w") as outfile:
                 #     data = {}
                 #     data["x_train"] = list(x_train)
@@ -316,6 +320,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 # 隨機替換突變
                 trial = np.where(cross_points, mutant, pop[j])
+                trial = np.round(trial, 8)
 
                 # denormalize
                 trial_denorm = min_b + trial * diff
@@ -328,7 +333,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 if f < fitness[j]: update_times += 1
 
-                if self.USING_ML:
+                if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
                     times = 0
                     pred = self.model(torch.FloatTensor([(trial - pop[j]).tolist()])).item()
                     while pred > 0 and times<5: # 如果預測分數會上升就重找參數
@@ -350,6 +355,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                         # 隨機替換突變
                         trial = np.where(cross_points, mutant, pop[j])
+                        trial = np.round(trial, 8)
                         pred = self.model(torch.FloatTensor([(trial - pop[j]).tolist()])).item()
 
                 # denormalize
@@ -362,7 +368,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 f = self.fobj(param_value - ans)
 
                 ##### ML #####
-                if self.USING_ML:
+                if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
                     if f < fitness[j]: acc_times += 1
                     else:
                         x_train.append((trial - pop[j]).tolist())
@@ -404,7 +410,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     sys.exit()
             update_rate = update_times/popsize
             acc_rate = acc_times/popsize
-            if acc_rate >= 1: self.ML_TRAIN = False
         callback()
 
     def set_time_counter(self):
@@ -437,10 +442,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.update_plot.reset()
         self.ui.label_generation.setText("#")
         self.ui.label_individual.setText("#")
-        self.ui.label_now_IQM_1.setText("#")
-        self.ui.label_now_IQM_2.setText("#")
-        self.ui.label_target_IQM_1.setText("#")
-        self.ui.label_target_IQM_2.setText("#")
         self.ui.label_score.setText("#")
 
     # Ackley
