@@ -18,7 +18,7 @@ class Capture(QWidget):
         self.state = threading.Condition()
 
     def capture(self, path="", focus_time=4, save_time=1, num=0):
-        self.capture_fail_signal.emit()
+        self.capture_fail_signal.emit() #呼叫main thread跳出視窗
         self.state.acquire()
-        self.state.wait()
+        self.state.wait() # block thread
         self.state.release()
