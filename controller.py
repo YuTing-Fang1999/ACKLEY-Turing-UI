@@ -61,7 +61,6 @@ class MainWindow_controller(QtWidgets.QMainWindow):
 
     def reset_param_window(self, popsize, param_change_num, ans):
         self.param_window = Param_window(popsize, param_change_num, ans)
-        self.show_param_window()
 
     def show_param_window(self):
         self.param_window.show()
@@ -103,7 +102,6 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def tuning_task_down(self):
         self.tuning.is_run = False
         self.ui.btn_run.setText('Run')
-        # self.show_param_window()
 
     def select_project(self):
         folder_path = QFileDialog.getExistingDirectory(self,

@@ -54,12 +54,6 @@ class MyDataset(Dataset):
         self.x = torch.FloatTensor(x)
 
     def __getitem__(self, idx):
-        # 隨機取另一個分數
-        # idx2 = random.randint(0, self.__len__()-1)
-        # x = self.x[idx]-self.x[idx2]
-        # y = self.y[idx]-self.y[idx2]
-        # y = torch.FloatTensor(np.tanh(y))
-
         x = self.x[idx]
         y = np.tanh(self.y[idx])
         return x, y
@@ -140,9 +134,9 @@ class HyperOptimizer():
         return v
 
     def exponantial_reverse(self, generation):
-        if generation % 15 == 0:
-            self.init_value += 0.1
-            self.rate -= 0.01
+        # if generation % 15 == 0:
+        #     self.init_value += 0.1
+        #     self.rate -= 0.01
 
         v = self.init_value + (self.rate*(generation % 15))**np.exp(0.5)
 
@@ -188,6 +182,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         popsize = self.setting.params['population size']
         generations = self.setting.params['generations']
 
+        dimensions = self.setting.params['dimensions']
         param_value = np.array(self.setting.params['param_value'])  # 參數值
         param_change_idx = self.setting.params['param_change_idx']  # 有哪些參數需要更動
         param_change_num = len(param_change_idx)
@@ -211,7 +206,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.ML_TRAIN = self.setting.params['train']
 
         if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
-            self.model = My_Model(len(param_value), 1)
+            self.model = My_Model(dimensions, 1)
             if self.ML_PRETRAIN_MODEL and os.path.exists("My_Model"):
                 self.model.load_state_dict(torch.load("My_Model"))
             criterion = nn.MSELoss(reduction='mean')
@@ -263,6 +258,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         update_rate = 0
         acc_rate = 0
+        ML_fail_time = 0
         # iteration
         for i in range(generations):
             update_times = 0
@@ -283,7 +279,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 train_dataset = MyDataset(x_train, y_train)
                 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
                 self.model.train()
-                epoch_n = min(i*10, 50)
+                epoch_n = 50
                 for epoch in range(epoch_n):
                     loss_record = []
                     for x, y in train_loader:
@@ -335,8 +331,10 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
                     times = 0
-                    pred = self.model(torch.FloatTensor([(trial - pop[j]).tolist()])).item()
-                    while pred > 0 and times<5: # 如果預測分數會上升就重找參數
+                    x = np.zeros(dimensions)
+                    x[param_change_idx] = trial - pop[j]
+                    pred = self.model(torch.FloatTensor([x.tolist()])).item()
+                    while pred > 0.01 and times<5: # 如果預測分數會上升就重找參數
                         times+=1
                         # select all pop except j
                         idxs = [idx for idx in range(popsize) if idx != j]
@@ -356,7 +354,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                         # 隨機替換突變
                         trial = np.where(cross_points, mutant, pop[j])
                         trial = np.round(trial, 8)
-                        pred = self.model(torch.FloatTensor([(trial - pop[j]).tolist()])).item()
+                        x = np.zeros(dimensions)
+                        x[param_change_idx] = trial - pop[j]
+                        pred = self.model(torch.FloatTensor([x.tolist()])).item()
 
                 # denormalize
                 trial_denorm = min_b + trial * diff
@@ -369,13 +369,16 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 ##### ML #####
                 if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
+                    x = np.zeros(dimensions)
+                    x[param_change_idx] = trial - pop[j]
+                    y = [f-fitness[j]]
                     if f < fitness[j]: acc_times += 1
                     else:
-                        x_train.append((trial - pop[j]).tolist())
-                        y_train.append([f-fitness[j]])
+                        x_train.append(x.tolist())
+                        y_train.append(y)
 
-                    x_train.append((trial - pop[j]).tolist())
-                    y_train.append([f-fitness[j]])
+                    x_train.append(x.tolist())
+                    y_train.append(y)
                 ##### ML #####
 
                 # 如果突變種比原本的更好
@@ -402,7 +405,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 if f <= 1e-6: self.is_run = False
                 self.bset_score_plot.update([fitness[best_idx]])
-                # self.hyper_param_plot.update([F, Cr])
+                self.hyper_param_plot.update([F, Cr])
                 self.update_plot.update([acc_rate, update_rate])
 
                 if not self.is_run:
@@ -410,6 +413,11 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     sys.exit()
             update_rate = update_times/popsize
             acc_rate = acc_times/popsize
+            # if update_rate>acc_rate and acc_rate < 0.5: 
+            #     ML_fail_time += 1
+            #     if ML_fail_time > 3:
+            #         self.ML_PRETRAIN_MODEL = False
+            #         self.ML_TRAIN = False
         callback()
 
     def set_time_counter(self):
