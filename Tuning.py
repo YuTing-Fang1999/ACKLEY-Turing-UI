@@ -277,11 +277,12 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     json.dump(data, outfile)
 
                 train_dataset = MyDataset(x_train, y_train)
-                train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+                bs = min(1024, 8*(i+1))
+                train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True)
                 self.model.train()
-                epoch_n = 50
+                epoch_n = 500
+                loss_record = []
                 for epoch in range(epoch_n):
-                    loss_record = []
                     for x, y in train_loader:
                         output = self.model(x)
                         loss = criterion(output, y)
@@ -290,9 +291,10 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                         # Update parameters.
                         optimizer.step()
                         loss_record.append(loss.detach().item())
-
-                    mean_train_loss = sum(loss_record)/len(loss_record)
-                    self.loss_plot.update([mean_train_loss])  # plot loss
+                    
+                    if (epoch+1) % 10 == 0:
+                        mean_train_loss = sum(loss_record)/len(loss_record)
+                        self.loss_plot.update([mean_train_loss])  # plot loss
             ##### ML #####
 
             for j in range(popsize):
