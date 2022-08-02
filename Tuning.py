@@ -29,11 +29,11 @@ class My_Model(nn.Module):
         super(My_Model, self).__init__()
         self.layers = nn.Sequential(
             nn.Linear(input_dim, 16),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(16, 32),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(32, 16),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(16, 1),
             nn.Tanh(),
         )
