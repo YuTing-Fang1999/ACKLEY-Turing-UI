@@ -8,5 +8,5 @@ import sys
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
 app = QtWidgets.QApplication(sys.argv)
 window = MainWindow_controller()
-window.show()
+window.showMaximized()
 sys.exit(app.exec_())

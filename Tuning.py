@@ -1,4 +1,3 @@
-
 # Pytorch
 import torch
 import torch.nn as nn
@@ -23,44 +22,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib
 matplotlib.use('Qt5Agg')
 
-
-class My_Model(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super(My_Model, self).__init__()
-        self.layers = nn.Sequential(
-            nn.Linear(input_dim, 16),
-            nn.ReLU(),
-            nn.Linear(16, 32),
-            nn.ReLU(),
-            nn.Linear(32, 16),
-            nn.ReLU(),
-            nn.Linear(16, 1),
-            nn.Tanh(),
-        )
-
-    def forward(self, x):
-        x = self.layers(x)
-        return x
-
-
-class MyDataset(Dataset):
-    '''
-    x: Features.
-    y: Targets, if none, do prediction.
-    '''
-
-    def __init__(self, x, y):
-        self.y = torch.FloatTensor(y)
-        self.x = torch.FloatTensor(x)
-
-    def __getitem__(self, idx):
-        x = self.x[idx]
-        y = np.tanh(self.y[idx])
-        return x, y
-
-    def __len__(self):
-        return len(self.y)
-
+from ML import ML 
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -94,8 +56,7 @@ class MplCanvas_timing():
         lines = np.array(self.data).T
         x = list(range(lines.shape[-1]))
         for i in range(lines.shape[0]):
-            self.canvas.axes.plot(
-                x, lines[i], color=self.color[i], label=self.label[i])
+            self.canvas.axes.plot(x, lines[i], color=self.color[i], label=self.label[i])
         self.canvas.axes.legend(fontsize=15)
         self.canvas.fig.canvas.draw()  # 這裡注意是畫布重繪，self.figs.canvas
         self.canvas.fig.canvas.flush_events()  # 畫布刷新self.figs.canvas
@@ -154,9 +115,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
     def __init__(self, ui, setting, capture):
         super().__init__()
-        self.model = None
-        self.ML_PRETRAIN_MODEL = False
-        self.ML_TRAIN = False
+        self.ML = None
 
         self.ui = ui
         self.setting = setting
@@ -176,6 +135,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
     def run_Ackley(self, callback):
         x_train = []
         y_train = []
+
         # 開啟計時器
         self.start_time_counter()
         # 參數
@@ -203,16 +163,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         # print('F = ', F)
 
         ##### ML #####
-        self.ML_PRETRAIN_MODEL = self.setting.params['pretrain_model']
-        self.ML_TRAIN = self.setting.params['train']
-
-        if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
-            self.model = My_Model(dimensions, 1)
-            if self.ML_PRETRAIN_MODEL and os.path.exists("My_Model"):
-                self.model.load_state_dict(torch.load("My_Model"))
-            criterion = nn.MSELoss(reduction='mean')
-            optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-4)
-        ##### ML #####
+        self.ML = ML(self.setting.params['pretrain_model'], self.setting.params['train'], dimensions, 1)
 
         # 初始化20群(population) normalize: [0, 1]
         pop = np.random.rand(popsize, param_change_num)
@@ -270,32 +221,8 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             Cr = Cr_optimiter.update(i)
 
             ##### ML #####
-            if self.ML_TRAIN and i>0:
-                with open("dataset.json", "w") as outfile:
-                    data = {}
-                    data["x_train"] = list(x_train)
-                    data["y_train"] = list(y_train)
-                    json.dump(data, outfile)
-
-                train_dataset = MyDataset(x_train, y_train)
-                bs = min(1024, 8*(i+1))
-                train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True)
-                self.model.train()
-                epoch_n = 500
-                loss_record = []
-                for epoch in range(epoch_n):
-                    for x, y in train_loader:
-                        output = self.model(x)
-                        loss = criterion(output, y)
-                        # Compute gradient(backpropagation).
-                        loss.backward()
-                        # Update parameters.
-                        optimizer.step()
-                        loss_record.append(loss.detach().item())
-                    
-                    if (epoch+1) % 10 == 0:
-                        mean_train_loss = sum(loss_record)/len(loss_record)
-                        self.loss_plot.update([mean_train_loss])  # plot loss
+            if self.ML.TRAIN and i>0:
+                self.ML.train(i, x_train, y_train, self.loss_plot)
             ##### ML #####
 
             for j in range(popsize):
@@ -332,12 +259,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 if f < fitness[j]: update_times += 1
 
-                if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
+                # use model to predict
+                if self.ML.PRETRAIN_MODEL or self.ML.TRAIN:
                     times = 0
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
-                    pred = self.model(torch.FloatTensor([x.tolist()])).item()
-                    while pred > 0.01 and times<5: # 如果預測分數會上升就重找參數
+                    pred = self.ML.model(torch.FloatTensor([x.tolist()])).item()
+                    while pred > 0 and times<10: # 如果預測分數會上升就重找參數
                         times+=1
                         # select all pop except j
                         idxs = [idx for idx in range(popsize) if idx != j]
@@ -359,7 +287,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                         trial = np.round(trial, 8)
                         x = np.zeros(dimensions)
                         x[param_change_idx] = trial - pop[j]
-                        pred = self.model(torch.FloatTensor([x.tolist()])).item()
+                        pred = self.ML.model(torch.FloatTensor([x.tolist()])).item()
 
                 # denormalize
                 trial_denorm = min_b + trial * diff
@@ -371,7 +299,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 f = self.fobj(param_value - ans)
 
                 ##### ML #####
-                if self.ML_PRETRAIN_MODEL or self.ML_TRAIN:
+                if self.ML.PRETRAIN_MODEL or self.ML.TRAIN:
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
                     y = [f-fitness[j]]
@@ -416,11 +344,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     sys.exit()
             update_rate = update_times/popsize
             acc_rate = acc_times/popsize
-            # if update_rate>acc_rate and acc_rate < 0.5: 
-            #     ML_fail_time += 1
-            #     if ML_fail_time > 3:
-            #         self.ML_PRETRAIN_MODEL = False
-            #         self.ML_TRAIN = False
         callback()
 
     def set_time_counter(self):

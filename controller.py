@@ -43,7 +43,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # ret = QMessageBox.information(self,"","確定要關閉嗎", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         # if ret == QMessageBox.Yes:
         self.setting.write_setting()
-        if self.tuning.model: torch.save(self.tuning.model.state_dict(), "My_Model")
+        if self.tuning.ML: torch.save(self.tuning.ML.model.state_dict(), "My_Model")
         if self.ui.param_window: self.ui.param_window.close()
 
         # if ret == QMessageBox.No:  # continue run
@@ -62,6 +62,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
 
     def show_param_window(self):
         self.ui.param_window.show()
+        # self.ui.param_window.showMaximized()
     
     def setup_param_window(self, popsize, param_change_num, ans):
         self.ui.param_window.setup(popsize=popsize, param_change_num=param_change_num, ans=ans)
