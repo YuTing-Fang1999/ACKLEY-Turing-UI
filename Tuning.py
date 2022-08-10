@@ -164,6 +164,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         ##### ML #####
         self.ML = ML(self.setting.params['pretrain_model'], self.setting.params['train'], dimensions, 1)
+        ##### ML #####
 
         # 初始化20群(population) normalize: [0, 1]
         pop = np.random.rand(popsize, param_change_num)
@@ -209,12 +210,11 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
 
         update_rate = 0
-        acc_rate = 0
-        ML_fail_time = 0
-        # iteration
+        ML_update_rate = 0
+        # Do Differential Evolution
         for i in range(generations):
             update_times = 0
-            acc_times = 0
+            ML_update_times = 0
 
             self.ui.label_generation.setText(str(i))
             F = F_optimiter.update(i)
@@ -311,7 +311,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
                     y = [f-fitness[j]]
-                    if f < fitness[j]: acc_times += 1
+                    if f < fitness[j]: ML_update_times += 1
                     else:
                         x_train.append(x.tolist())
                         y_train.append(y)
@@ -341,17 +341,17 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                                 ParamModifyBlock_idx += 1
 
                         self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
-
-                if f <= 1e-6: self.is_run = False
+                        if f <= 1e-6: self.is_run = False
+                        
                 self.bset_score_plot.update([fitness[best_idx]])
                 self.hyper_param_plot.update([F, Cr])
-                self.update_plot.update([acc_rate, update_rate])
+                self.update_plot.update([ML_update_rate, update_rate])
 
                 if not self.is_run:
                     callback()
                     sys.exit()
             update_rate = update_times/popsize
-            acc_rate = acc_times/popsize
+            ML_update_rate = ML_update_times/popsize
         callback()
 
     def set_time_counter(self):

@@ -36,6 +36,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.tuning.setup_param_window_signal.connect(self.setup_param_window)
 
         self.ui.closeEvent = lambda event: self.closeEvent(event)
+        self.ui.param_window = None
 
     def closeEvent(self, event):
         print('window close')
@@ -61,7 +62,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.capture.state.release()
 
     def show_param_window(self):
-        self.ui.param_window.show()
+        if self.ui.param_window: self.ui.param_window.show()
         # self.ui.param_window.showMaximized()
     
     def setup_param_window(self, popsize, param_change_num, ans):

@@ -343,6 +343,7 @@ class Ui_MainWindow(object):
         self.btn_param_window.setStyleSheet("font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
         horizontalLayout.addWidget(self.btn_param_window)
 
+        ##### ML #####
         gridLayout_ML = QtWidgets.QGridLayout()
 
         self.pretrain_model = QtWidgets.QCheckBox(tab)
@@ -360,6 +361,8 @@ class Ui_MainWindow(object):
         gridLayout_ML.addWidget(label, 1, 1, 1, 1)
 
         horizontalLayout.addLayout(gridLayout_ML)
+        ##### ML #####
+
 
         label = QtWidgets.QLabel(tab)
         label.setText("總分")
@@ -445,7 +448,6 @@ class Ui_MainWindow(object):
         tabWidget_plot.addTab(tab_update, "update rate")
 
         gridLayout.addWidget(tabWidget_plot, 1, 0, 1, 1)
-        # gridLayout.addWidget(self.label_best_score_plot, 1, 0, 1, 1)
 
         gridLayout.setRowStretch(1, 1)
 
