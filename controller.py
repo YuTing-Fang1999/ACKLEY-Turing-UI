@@ -21,7 +21,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.setting = Setting(self.ui)
         self.capture = Capture(self.ui)
         self.tuning = Tuning(self.ui, self.setting, self.capture)
-        self.param_window = None
+        self.ui.param_window = Param_window()
 
         self.setup_control()
 
@@ -31,9 +31,10 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # self.ui.btn_select_ROI.clicked.connect(self.select_ROI)
         self.ui.btn_run.clicked.connect(self.run)
         self.capture.capture_fail_signal.connect(self.capture_fail)
+        self.ui.btn_param_window.clicked.connect(self.show_param_window)
         self.tuning.show_param_window_signal.connect(self.show_param_window)
         self.tuning.update_param_window_signal.connect(self.update_param_window)
-        self.tuning.reset_param_window_signal.connect(self.reset_param_window)
+        self.tuning.setup_param_window_signal.connect(self.setup_param_window)
 
         self.ui.closeEvent = lambda event: self.closeEvent(event)
 
@@ -43,7 +44,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # if ret == QMessageBox.Yes:
         self.setting.write_setting()
         if self.tuning.model: torch.save(self.tuning.model.state_dict(), "My_Model")
-        if self.param_window: self.param_window.close()
+        if self.ui.param_window: self.ui.param_window.close()
 
         # if ret == QMessageBox.No:  # continue run
         # event.ignore()
@@ -59,14 +60,15 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.capture.state.notify()  # Unblock self if waiting.
         self.capture.state.release()
 
-    def reset_param_window(self, popsize, param_change_num, ans):
-        self.param_window = Param_window(popsize, param_change_num, ans)
-
     def show_param_window(self):
-        self.param_window.show()
+        self.ui.param_window.show()
+    
+    def setup_param_window(self, popsize, param_change_num, ans):
+        self.ui.param_window.setup(popsize=popsize, param_change_num=param_change_num, ans=ans)
 
-    def update_param_window(self, idx, param_value, score):
-        self.param_window.update(idx, param_value, score)
+    def update_param_window(self, idx, param_value, score, IQM):
+        self.ui.param_window.update(idx, param_value, score, IQM)
+
 
     def run(self):
         if self.tuning.is_run:

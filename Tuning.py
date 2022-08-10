@@ -147,9 +147,10 @@ class HyperOptimizer():
 
 
 class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
-    reset_param_window_signal = pyqtSignal(int, int, np.ndarray)
     show_param_window_signal = pyqtSignal()
-    update_param_window_signal = pyqtSignal(int, np.ndarray, float)
+    setup_param_window_signal = pyqtSignal(int, int, np.ndarray)
+    update_param_window_signal = pyqtSignal(int, np.ndarray, float, np.ndarray)
+
 
     def __init__(self, ui, setting, capture):
         super().__init__()
@@ -241,7 +242,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             param_value[param_change_idx] = pop_denorm[i]
             f = self.fobj(param_value - ans)
             fitness.append(f)
-            self.update_param_window_signal.emit(i, pop_denorm[i], f)
+            self.update_param_window_signal.emit(i, pop_denorm[i], f, np.array([]))
 
         # find the best pop(以這個例子是score最小的pop)
         best_idx = np.argmin(fitness)
@@ -388,7 +389,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     # 替換原本的個體
                     fitness[j] = f
                     pop[j] = trial
-                    self.update_param_window_signal.emit(j, trial_denorm, f)
+                    self.update_param_window_signal.emit(j, trial_denorm, f, np.array([]))
 
                     # 如果突變種比最優種更好
                     if f < fitness[best_idx]:
@@ -444,7 +445,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         self.timer.start()
 
     def reset(self, popsize, param_change_num, ans):
-        self.reset_param_window_signal.emit(popsize, param_change_num, ans)
+        self.setup_param_window_signal.emit(popsize, param_change_num, ans)
         # reset plot
         self.bset_score_plot.reset()
         self.hyper_param_plot.reset()

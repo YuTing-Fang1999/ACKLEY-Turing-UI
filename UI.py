@@ -335,9 +335,13 @@ class Ui_MainWindow(object):
 
         self.btn_run = QtWidgets.QPushButton(tab)
         self.btn_run.setText("Run")
-        self.btn_run.setStyleSheet(
-            "font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
+        self.btn_run.setStyleSheet("font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
         horizontalLayout.addWidget(self.btn_run)
+
+        self.btn_param_window = QtWidgets.QPushButton(tab)
+        self.btn_param_window.setText("Param")
+        self.btn_param_window.setStyleSheet("font-family:Agency FB; font-size:30pt; width: 100%; height: 100%;")
+        horizontalLayout.addWidget(self.btn_param_window)
 
         gridLayout_ML = QtWidgets.QGridLayout()
 
