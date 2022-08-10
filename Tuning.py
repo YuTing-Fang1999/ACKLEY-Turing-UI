@@ -220,11 +220,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             F = F_optimiter.update(i)
             Cr = Cr_optimiter.update(i)
 
-            ##### ML #####
-            if self.ML.TRAIN and i>0:
-                self.ML.train(i, x_train, y_train, self.loss_plot)
-            ##### ML #####
-
             for j in range(popsize):
                 # sleep(1)
                 self.ui.label_individual.setText(str(j))
@@ -295,8 +290,21 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 # add fix value
                 param_value[param_change_idx] = trial_denorm
 
+                ##### ML #####
+                if self.ML.TRAIN and i>0:
+                    # 建立一個子執行緒
+                    self.train_task = threading.Thread(target = lambda: self.ML.train(i, x_train, y_train, self.loss_plot))
+                    # self.ML.train(i, x_train, y_train, self.loss_plot)
+                    # 當主程序退出，該執行緒也會跟著結束
+                    self.train_task.daemon = True
+                    # 執行該子執行緒
+                    self.train_task.start()
+                ##### ML #####
+
                 # mesure score
                 f = self.fobj(param_value - ans)
+                if self.ML.TRAIN and i>0:
+                    self.train_task.join()
 
                 ##### ML #####
                 if self.ML.PRETRAIN_MODEL or self.ML.TRAIN:

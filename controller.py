@@ -10,6 +10,7 @@ from Capture import Capture
 
 import threading
 import torch
+import os
 
 
 class MainWindow_controller(QtWidgets.QMainWindow):
@@ -21,8 +22,6 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.setting = Setting(self.ui)
         self.capture = Capture(self.ui)
         self.tuning = Tuning(self.ui, self.setting, self.capture)
-        self.ui.param_window = Param_window()
-
         self.setup_control()
 
     def setup_control(self):
@@ -43,7 +42,8 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # ret = QMessageBox.information(self,"","確定要關閉嗎", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         # if ret == QMessageBox.Yes:
         self.setting.write_setting()
-        if self.tuning.ML: torch.save(self.tuning.ML.model.state_dict(), "My_Model")
+        if self.tuning.ML and self.tuning.ML.PRETRAIN_MODEL or not os.path.exists("My_Model"): 
+            torch.save(self.tuning.ML.model.state_dict(), "My_Model")
         if self.ui.param_window: self.ui.param_window.close()
 
         # if ret == QMessageBox.No:  # continue run
@@ -52,7 +52,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def select_ROI(self):
         roi = self.capture.select_ROI()
         self.setting.params['roi'] = roi
-        print(roi)
+        # print(roi)
 
     def capture_fail(self):
         QMessageBox.about(self, "拍攝未成功", "拍攝未成功\n請多按幾次拍照鍵測試\n再按ok鍵重新拍攝")
@@ -65,6 +65,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # self.ui.param_window.showMaximized()
     
     def setup_param_window(self, popsize, param_change_num, ans):
+        self.ui.param_window = Param_window()
         self.ui.param_window.setup(popsize=popsize, param_change_num=param_change_num, ans=ans)
 
     def update_param_window(self, idx, param_value, score, IQM):
@@ -93,8 +94,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
             # self.tuning.run(self.tuning_task_down)
 
             # Test
-            self.tuning_task = threading.Thread(
-                target=lambda: self.tuning.run_Ackley(self.tuning_task_down))
+            self.tuning_task = threading.Thread(target=lambda: self.tuning.run_Ackley(self.tuning_task_down))
             # 建立一個子執行緒
             # self.tuning_task = threading.Thread(target = lambda: self.tuning.run(self.tuning_task_down))
             # 當主程序退出，該執行緒也會跟著結束

@@ -19,7 +19,7 @@ class My_Model(nn.Module):
             nn.Linear(32, 16),
             nn.ReLU(),
             nn.Linear(16, 1),
-            nn.Tanh(),
+            # nn.Tanh(),
         )
 
     def forward(self, x):
@@ -39,7 +39,8 @@ class My_Dataset(Dataset):
 
     def __getitem__(self, idx):
         x = self.x[idx]
-        y = np.tanh(self.y[idx])
+        y = self.y[idx]
+        # y = np.tanh(self.y[idx])
         return x, y
 
     def __len__(self):
@@ -58,22 +59,19 @@ class ML():
         self.criterion = nn.MSELoss(reduction='mean')
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-5)
 
-    def get_dataset(self, x,y):
-        return My_Dataset(x,y)
-
-
     def train(self, i, x_train, y_train, loss_plot):
-        with open("dataset.json", "w") as outfile:
-            data = {}
-            data["x_train"] = list(x_train)
-            data["y_train"] = list(y_train)
-            json.dump(data, outfile)
+        # with open("dataset.json", "w") as outfile:
+        #     data = {}
+        #     data["x_train"] = list(x_train)
+        #     data["y_train"] = list(y_train)
+        #     json.dump(data, outfile)
 
         train_dataset = My_Dataset(x_train, y_train)
         bs = min(1024, 8*(i+1))
         train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True)
         self.model.train()
-        epoch_n = 500
+        if i < 3: epoch_n = 100
+        else: epoch_n = 50
         loss_record = []
 
         for epoch in range(epoch_n):

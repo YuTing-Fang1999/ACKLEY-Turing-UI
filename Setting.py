@@ -184,6 +184,9 @@ class Setting():
                 P.lineEdits[i].setText(str(self.ans['param_value'][idx]))
                 idx+=1
 
+        # ML
+        self.ui.train.setChecked(self.params['train'])
+        self.ui.pretrain_model.setChecked(self.params['pretrain_model'])
 
     def set_img(self, img, label):
         qimg = QImage(img, img.shape[1], img.shape[0], img.shape[1]*img.shape[2], QImage.Format_RGB888).rgbSwapped()
