@@ -43,8 +43,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # ret = QMessageBox.information(self,"","確定要關閉嗎", QMessageBox.Yes|QMessageBox.No, QMessageBox.No)
         # if ret == QMessageBox.Yes:
         self.setting.write_setting()
-        if self.tuning.ML and self.tuning.ML.PRETRAIN_MODEL or not os.path.exists("My_Model"): 
-            torch.save(self.tuning.ML.model.state_dict(), "My_Model")
+        if self.tuning.ML: torch.save(self.tuning.ML.model.state_dict(), "My_Model")
         if self.ui.param_window: self.ui.param_window.close()
 
         # if ret == QMessageBox.No:  # continue run

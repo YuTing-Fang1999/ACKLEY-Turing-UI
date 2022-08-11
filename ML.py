@@ -18,7 +18,7 @@ class My_Model(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 16),
             nn.ReLU(),
-            nn.Linear(16, 1),
+            nn.Linear(16, output_dim),
             # nn.Tanh(),
         )
 

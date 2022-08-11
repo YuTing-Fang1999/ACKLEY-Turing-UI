@@ -350,6 +350,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 if not self.is_run:
                     callback()
                     sys.exit()
+                    
             update_rate = update_times/popsize
             ML_update_rate = ML_update_times/popsize
         callback()
