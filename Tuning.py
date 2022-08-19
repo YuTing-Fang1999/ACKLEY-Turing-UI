@@ -79,6 +79,11 @@ class HyperOptimizer():
             self.method = self.exponantial_decay
         if method == "exponantial_reverse":
             self.method = self.exponantial_reverse
+        if method == "constant":
+            self.method = self.constant
+
+    def constant(self, generation):
+        return self.init_value
 
     def step_decay(self, generation):
         v = self.init_value - self.decay_value * generation
@@ -159,7 +164,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         Cr_optimiter = HyperOptimizer(
             init_value=0.3, final_value=0.9, method="exponantial_reverse", rate=0.05)
         F_optimiter = HyperOptimizer(
-            init_value=0.7, final_value=0.3, method="exponantial", rate=0.2)
+            init_value=0.7, final_value=0.7, method="constant")
+        # F_optimiter = HyperOptimizer(
+        #     init_value=0.7, final_value=0.3, method="exponantial", rate=0.2)
         # print('F = ', F)
 
         ##### ML #####
@@ -201,11 +208,11 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         best = pop_denorm[best_idx]
 
         param_value[param_change_idx] = best
-        ParamModifyBlock_idx = 0
-        for P in self.ui.ParamModifyBlock:
-            for E in P.lineEdits:
-                E.setText(str(np.around(param_value[ParamModifyBlock_idx], 4)))
-                ParamModifyBlock_idx += 1
+        # ParamModifyBlock_idx = 0
+        # for P in self.ui.ParamModifyBlock:
+        #     for E in P.lineEdits:
+        #         E.setText(str(np.around(param_value[ParamModifyBlock_idx], 4)))
+        #         ParamModifyBlock_idx += 1
 
         self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
 
@@ -331,18 +338,17 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     if f < fitness[best_idx]:
                         # 替換最優種
                         best_idx = j
-                        best = param_value
 
-                        ParamModifyBlock_idx = 0
-                        for P in self.ui.ParamModifyBlock:
-                            for E in P.lineEdits:
-                                E.setText(
-                                    str(np.around(param_value[ParamModifyBlock_idx], 4)))
-                                ParamModifyBlock_idx += 1
+                        # ParamModifyBlock_idx = 0
+                        # for P in self.ui.ParamModifyBlock:
+                        #     for E in P.lineEdits:
+                        #         E.setText(str(np.around(param_value[ParamModifyBlock_idx], 4)))
+                        #         ParamModifyBlock_idx += 1
+                       
+                print(fitness[best_idx])
+                self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
+                if f <= 1e-6: self.is_run = False
 
-                        self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
-                        if f <= 1e-6: self.is_run = False
-                        
                 self.bset_score_plot.update([fitness[best_idx]])
                 self.hyper_param_plot.update([F, Cr])
                 self.update_plot.update([ML_update_rate, update_rate])
