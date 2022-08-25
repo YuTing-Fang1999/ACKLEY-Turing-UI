@@ -366,6 +366,7 @@ class Ui_MainWindow(object):
 
         label = QtWidgets.QLabel(tab)
         label.setText("總分")
+        label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         horizontalLayout.addWidget(label)
 
         self.label_score = QtWidgets.QLabel(tab)

@@ -163,11 +163,12 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         #     init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
         Cr_optimiter = HyperOptimizer(
             init_value=0.3, final_value=0.9, method="exponantial_reverse", rate=0.05)
-        F_optimiter = HyperOptimizer(
-            init_value=0.7, final_value=0.7, method="constant")
+        # Cr_optimiter = HyperOptimizer(
+        #     init_value=0.5, final_value=0.5, method="constant")
         # F_optimiter = HyperOptimizer(
-        #     init_value=0.7, final_value=0.3, method="exponantial", rate=0.2)
-        # print('F = ', F)
+        #     init_value=0.7, final_value=0.7, method="constant")
+        F_optimiter = HyperOptimizer(
+            init_value=0.7, final_value=0.5, method="exponantial", rate=0.2)
 
         ##### ML #####
         self.ML = ML(self.setting.params['pretrain_model'], self.setting.params['train'], dimensions, 1)
@@ -267,7 +268,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
                     pred = self.ML.model(torch.FloatTensor([x.tolist()])).item()
-                    while pred > 0 and times<10: # 如果預測分數會上升就重找參數
+                    while pred > 0 and times<5: # 如果預測分數會上升就重找參數
                         times+=1
                         # select all pop except j
                         idxs = [idx for idx in range(popsize) if idx != j]
@@ -345,7 +346,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                         #         E.setText(str(np.around(param_value[ParamModifyBlock_idx], 4)))
                         #         ParamModifyBlock_idx += 1
                        
-                print(fitness[best_idx])
+                # print(fitness[best_idx])
                 self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
                 if f <= 1e-6: self.is_run = False
 

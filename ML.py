@@ -19,7 +19,6 @@ class My_Model(nn.Module):
             nn.Linear(32, 16, bias=False),
             nn.ReLU(),
             nn.Linear(16, output_dim, bias=False),
-            # nn.Tanh(),
         )
 
     def forward(self, x):
@@ -70,8 +69,8 @@ class ML():
         bs = min(1024, 8*(i+1))
         train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True)
         self.model.train()
-        if i < 3: epoch_n = 100
-        else: epoch_n = 50
+        if i < 3: epoch_n = 200
+        else: epoch_n = 100
         loss_record = []
 
         for epoch in range(epoch_n):
