@@ -52,11 +52,14 @@ class ML():
         self.PRETRAIN_MODEL = PRETRAIN_MODEL
         self.TRAIN = TRAIN
 
-        if self.PRETRAIN_MODEL and os.path.exists("My_Model"):
-            self.model.load_state_dict(torch.load("My_Model"))
-
         self.criterion = nn.MSELoss(reduction='mean')
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-5)
+
+        if self.PRETRAIN_MODEL and os.path.exists("My_Model"):
+            self.model.load_state_dict(torch.load("My_Model"))
+            self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-6)
+
+        
 
     def train(self, i, x_train, y_train, loss_plot):
         # with open("dataset.json", "w") as outfile:

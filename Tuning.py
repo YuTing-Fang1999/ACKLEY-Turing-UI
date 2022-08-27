@@ -91,13 +91,12 @@ class HyperOptimizer():
 
     def exponantial_decay(self, generation):
         # if generation % 15 == 0:
-        #     self.init_value+=0.1
+        #     self.final_value+=0.1
         # self.final_value-=0.1
 
-        v = (self.init_value-self.final_value) * \
-            np.exp(-self.rate * (generation % 15)) + self.final_value
+        v = (self.init_value-self.final_value) * np.exp(-self.rate * (generation % 15)) + self.final_value
 
-        return v
+        return min(v, self.init_value)
 
     def exponantial_reverse(self, generation):
         # if generation % 15 == 0:
@@ -162,13 +161,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         # F_optimiter = HyperOptimizer(
         #     init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
         Cr_optimiter = HyperOptimizer(
-            init_value=0.3, final_value=0.9, method="exponantial_reverse", rate=0.05)
+            init_value=0.5, final_value=0.8, method="exponantial_reverse", rate=0.05)
         # Cr_optimiter = HyperOptimizer(
         #     init_value=0.5, final_value=0.5, method="constant")
-        # F_optimiter = HyperOptimizer(
-        #     init_value=0.7, final_value=0.7, method="constant")
         F_optimiter = HyperOptimizer(
-            init_value=0.7, final_value=0.5, method="exponantial", rate=0.2)
+            init_value=0.7, final_value=0.7, method="constant")
+        # F_optimiter = HyperOptimizer(
+        #     init_value=0.8, final_value=0.4, method="exponantial", rate=0.2)
 
         ##### ML #####
         self.ML = ML(self.setting.params['pretrain_model'], self.setting.params['train'], dimensions, 1)
@@ -348,7 +347,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                        
                 # print(fitness[best_idx])
                 self.ui.label_score.setText(str(np.round(fitness[best_idx], 5)))
-                if f <= 1e-6: self.is_run = False
+                if f <= 1e-5: self.is_run = False
 
                 self.bset_score_plot.update([fitness[best_idx]])
                 self.hyper_param_plot.update([F, Cr])
