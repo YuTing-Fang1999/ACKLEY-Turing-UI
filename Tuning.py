@@ -147,6 +147,8 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         popsize = self.setting.params['population size']
         generations = self.setting.params['generations']
 
+        target_IQM = np.array([0])
+
         dimensions = self.setting.params['dimensions']
         param_value = np.array(self.setting.params['param_value'])  # 參數值
         param_change_idx = self.setting.params['param_change_idx']  # 有哪些參數需要更動
@@ -161,7 +163,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         # F_optimiter = HyperOptimizer(
         #     init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
         Cr_optimiter = HyperOptimizer(
-            init_value=0.5, final_value=0.8, method="exponantial_reverse", rate=0.05)
+            init_value=0.3, final_value=0.9, method="exponantial_reverse", rate=0.05)
         # Cr_optimiter = HyperOptimizer(
         #     init_value=0.5, final_value=0.5, method="constant")
         F_optimiter = HyperOptimizer(
@@ -196,11 +198,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         # measure score
         fitness = []
+        IQMs = []
         for i in range(popsize):
             # replace fix value
             param_value[param_change_idx] = pop_denorm[i]
             f = self.fobj(param_value - ans)
             fitness.append(f)
+            IQMs.append([f])
             self.update_param_window_signal.emit(i, pop_denorm[i], f, np.array([]))
 
         # find the best pop(以這個例子是score最小的pop)
@@ -262,12 +266,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 if f < fitness[j]: update_times += 1
 
                 # use model to predict
-                if self.ML.PRETRAIN_MODEL or self.ML.TRAIN:
+                if self.ML.PRETRAIN_MODEL or (self.ML.TRAIN and i>=2):
+                    diff_target_IQM = target_IQM - IQMs[j]
                     times = 0
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
-                    pred = self.ML.model(torch.FloatTensor([x.tolist()])).item()
-                    while pred > 0 and times<5: # 如果預測分數會上升就重找參數
+                    pred = self.ML.model(torch.FloatTensor([x.tolist()])).detach().numpy()
+                    while (pred * diff_target_IQM <= 0).all() and times<5: # 如果預測分數會上升就重找參數
                         times+=1
                         # select all pop except j
                         idxs = [idx for idx in range(popsize) if idx != j]
@@ -319,9 +324,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     x[param_change_idx] = trial - pop[j]
                     y = [f-fitness[j]]
                     if f < fitness[j]: ML_update_times += 1
-                    else:
-                        x_train.append(x.tolist())
-                        y_train.append(y)
+                    # else:
+                    #     x_train.append(x.tolist())
+                    #     y_train.append(y)
 
                     x_train.append(x.tolist())
                     y_train.append(y)
