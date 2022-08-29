@@ -272,13 +272,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
                     pred = self.ML.model(torch.FloatTensor([x.tolist()])).detach().numpy()
-                    while (pred * diff_target_IQM <= 0).all() and times<5: # 如果預測分數會上升就重找參數
+                    while (pred * diff_target_IQM <= 0).all() and times<20: # 如果預測分數會上升就重找參數
                         times+=1
                         # select all pop except j
                         idxs = [idx for idx in range(popsize) if idx != j]
+                        
                         # random select two pop except j
                         a, b, c = pop[np.random.choice(idxs, 3, replace=False)]
-
                         # Mutation
                         mutant = np.clip(a + F*(b - c), 0, 1)
 
@@ -295,7 +295,8 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                         x = np.zeros(dimensions)
                         x[param_change_idx] = trial - pop[j]
                         pred = self.ML.model(torch.FloatTensor([x.tolist()])).item()
-
+                        
+                print(times)
                 # denormalize
                 trial_denorm = min_b + trial * diff
 
