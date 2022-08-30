@@ -114,10 +114,10 @@ class Param_window(QtWidgets.QMainWindow):
                                 """
                            )
 
-    def update(self, idx, trial_denorm, score, IQM=[]):
+    def update(self, idx, trial, trial_denorm, score, IQM=[]):
         self.fitness[idx] = score
         self.label_score[idx].setText(str(np.round(score, 5)))
-        if isinstance(self.ans, np.ndarray): color = 255*(1-np.abs(trial_denorm-self.ans))
+        if isinstance(self.ans, np.ndarray): color = 255*(1-np.abs(trial-self.ans))
         for j in range(self.param_change_num):
             self.label_trial_denorm[idx][j].setText(str(np.round(trial_denorm[j], 4)))
             if isinstance(self.ans, np.ndarray):

@@ -114,7 +114,7 @@ class HyperOptimizer():
 class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
     show_param_window_signal = pyqtSignal()
     setup_param_window_signal = pyqtSignal(int, int, np.ndarray)
-    update_param_window_signal = pyqtSignal(int, np.ndarray, float, np.ndarray)
+    update_param_window_signal = pyqtSignal(int, np.ndarray, np.ndarray, float, np.ndarray)
 
 
     def __init__(self, ui, setting, capture):
@@ -205,7 +205,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             f = self.fobj(param_value - ans)
             fitness.append(f)
             IQMs.append([f])
-            self.update_param_window_signal.emit(i, pop_denorm[i], f, np.array([]))
+            self.update_param_window_signal.emit(i, pop[i], pop_denorm[i], f, np.array([]))
 
         # find the best pop(以這個例子是score最小的pop)
         best_idx = np.argmin(fitness)
@@ -296,7 +296,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                         x[param_change_idx] = trial - pop[j]
                         pred = self.ML.model(torch.FloatTensor([x.tolist()])).item()
                         
-                print(times)
+                    print(times)
                 # denormalize
                 trial_denorm = min_b + trial * diff
 
@@ -338,7 +338,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     # 替換原本的個體
                     fitness[j] = f
                     pop[j] = trial
-                    self.update_param_window_signal.emit(j, trial_denorm, f, np.array([]))
+                    self.update_param_window_signal.emit(j, trial, trial_denorm, f, np.array([]))
 
                     # 如果突變種比最優種更好
                     if f < fitness[best_idx]:

@@ -70,8 +70,8 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.param_window = Param_window()
         self.ui.param_window.setup(popsize=popsize, param_change_num=param_change_num, ans=ans)
 
-    def update_param_window(self, idx, param_value, score, IQM):
-        self.ui.param_window.update(idx, param_value, score, IQM)
+    def update_param_window(self, idx, trial, trial_denorm, score, IQM):
+        self.ui.param_window.update(idx, trial, trial_denorm, score, IQM)
 
 
     def run(self):
