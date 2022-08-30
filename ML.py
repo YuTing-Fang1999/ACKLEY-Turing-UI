@@ -55,6 +55,8 @@ class ML():
         self.criterion = nn.MSELoss(reduction='mean')
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=1e-5)
         self.epoch_n=200
+        self.train_idx = 1
+        self.pred_idx = 3
 
         if self.PRETRAIN_MODEL and os.path.exists("My_Model"):
             self.model.load_state_dict(torch.load("My_Model"))
@@ -65,7 +67,7 @@ class ML():
 
     def train(self, i, x_train, y_train, loss_plot):
         if self.PRETRAIN_MODEL and os.path.exists("My_Model") and i<5: return
-        if i<=3: return
+        if i<=self.train_idx: return
         # with open("dataset.json", "w") as outfile:
         #     data = {}
         #     data["x_train"] = list(x_train)
@@ -73,7 +75,7 @@ class ML():
         #     json.dump(data, outfile)
 
         train_dataset = My_Dataset(x_train, y_train)
-        bs = min(1024, 8*(i+1))
+        bs = min(64, 8*(i+1))
         train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True)
         self.model.train()
         loss_record = []

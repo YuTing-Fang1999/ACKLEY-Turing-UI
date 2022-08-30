@@ -169,7 +169,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
         F_optimiter = HyperOptimizer(
             init_value=0.7, final_value=0.7, method="constant")
         # F_optimiter = HyperOptimizer(
-        #     init_value=0.8, final_value=0.4, method="exponantial", rate=0.2)
+        #     init_value=0.7, final_value=0.3, method="exponantial", rate=0.2)
 
         ##### ML #####
         self.ML = ML(self.setting.params['pretrain_model'], self.setting.params['train'], dimensions, 1)
@@ -266,13 +266,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 if f < fitness[j]: update_times += 1
 
                 # use model to predict
-                if self.ML.PRETRAIN_MODEL or (self.ML.TRAIN and i>=2):
+                if self.ML.PRETRAIN_MODEL or (self.ML.TRAIN and i>=self.ML.pred_idx):
                     diff_target_IQM = target_IQM - IQMs[j]
                     times = 0
                     x = np.zeros(dimensions)
                     x[param_change_idx] = trial - pop[j]
                     pred = self.ML.model(torch.FloatTensor([x.tolist()])).detach().numpy()
-                    while (pred * diff_target_IQM <= 0).all() and times<20: # 如果預測分數會上升就重找參數
+                    while (pred * diff_target_IQM <=0).all() and times<50: # 如果預測分數會上升就重找參數
                         times+=1
                         # select all pop except j
                         idxs = [idx for idx in range(popsize) if idx != j]
@@ -304,7 +304,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 param_value[param_change_idx] = trial_denorm
 
                 ##### ML #####
-                if self.ML.TRAIN and i>0:
+                if self.ML.TRAIN:
                     # 建立一個子執行緒
                     self.train_task = threading.Thread(target = lambda: self.ML.train(i, x_train, y_train, self.loss_plot))
                     # self.ML.train(i, x_train, y_train, self.loss_plot)
