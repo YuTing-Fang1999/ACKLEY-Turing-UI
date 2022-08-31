@@ -137,9 +137,6 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
             self.ui.label_update_plot, color=['b', 'k'], label=['using ML', 'no ML'])
 
     def run_Ackley(self, callback):
-        x_train = []
-        y_train = []
-
         # 開啟計時器
         self.start_time_counter()
         # 參數
@@ -267,6 +264,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
                 # use model to predict
                 if self.ML.PRETRAIN_MODEL or (self.ML.TRAIN and i>=self.ML.pred_idx):
+                    self.ML.model.eval()
                     diff_target_IQM = target_IQM - IQMs[j]
                     times = 0
                     x = np.zeros(dimensions)
@@ -306,8 +304,7 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                 ##### ML #####
                 if self.ML.TRAIN:
                     # 建立一個子執行緒
-                    self.train_task = threading.Thread(target = lambda: self.ML.train(i, x_train, y_train, self.loss_plot))
-                    # self.ML.train(i, x_train, y_train, self.loss_plot)
+                    self.train_task = threading.Thread(target = lambda: self.ML.train(i, self.loss_plot))
                     # 當主程序退出，該執行緒也會跟著結束
                     self.train_task.daemon = True
                     # 執行該子執行緒
@@ -325,12 +322,9 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
                     x[param_change_idx] = trial - pop[j]
                     y = [f-fitness[j]]
                     if f < fitness[j]: ML_update_times += 1
-                    # else:
-                    #     x_train.append(x.tolist())
-                    #     y_train.append(y)
 
-                    x_train.append(x.tolist())
-                    y_train.append(y)
+                    self.ML.x_train.append(x.tolist())
+                    self.ML.y_train.append(y)
                 ##### ML #####
 
                 # 如果突變種比原本的更好
