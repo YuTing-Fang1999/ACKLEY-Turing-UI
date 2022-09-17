@@ -34,7 +34,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
 class MplCanvas_timing():
 
-    def __init__(self, ui, color, label):
+    def __init__(self, ui, color, label, axis_name=["Generation", "Update Rate"]):
         self.data = []
 
         self.canvas = MplCanvas()
@@ -42,6 +42,7 @@ class MplCanvas_timing():
 
         self.color = color
         self.label = label
+        self.axis_name = axis_name
 
     def reset(self):
         self.data = []
@@ -57,6 +58,8 @@ class MplCanvas_timing():
         x = list(range(lines.shape[-1]))
         for i in range(lines.shape[0]):
             self.canvas.axes.plot(x, lines[i], color=self.color[i], label=self.label[i])
+        self.canvas.axes.set_xlabel(self.axis_name[0])
+        self.canvas.axes.set_ylabel(self.axis_name[1])
         self.canvas.axes.legend(fontsize=15)
         self.canvas.fig.canvas.draw()  # 這裡注意是畫布重繪，self.figs.canvas
         self.canvas.fig.canvas.flush_events()  # 畫布刷新self.figs.canvas
@@ -128,13 +131,13 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         # plot
         self.bset_score_plot = MplCanvas_timing(
-            self.ui.label_best_score_plot, color=['r', 'g'], label=['score'])
+            self.ui.label_best_score_plot, color=['r', 'g'], label=['score'], axis_name=["Generation", "Score"])
         self.hyper_param_plot = MplCanvas_timing(
-            self.ui.label_hyper_param_plot, color=['g', 'r'], label=['F', 'Cr'])
+            self.ui.label_hyper_param_plot, color=['g', 'r'], label=['F', 'Cr'], axis_name=["Generation", "Param Value"])
         self.loss_plot = MplCanvas_timing(
-            self.ui.label_loss_plot, color=['b'], label=['loss'])
+            self.ui.label_loss_plot, color=['b'], label=['loss'], axis_name=["Epoch/10", "Loss"])
         self.update_plot = MplCanvas_timing(
-            self.ui.label_update_plot, color=['b', 'k'], label=['using ML', 'no ML'])
+            self.ui.label_update_plot, color=['b', 'k'], label=['using ML', 'no ML'], axis_name=["Generation", "Update Rate"])
 
     def run_Ackley(self, callback):
         # 開啟計時器
@@ -159,10 +162,10 @@ class Tuning(QWidget):  # 要繼承QWidget才能用pyqtSignal!!
 
         # F_optimiter = HyperOptimizer(
         #     init_value=0.3, final_value=0.8, method="step", decay_value=-0.01)
-        # Cr_optimiter = HyperOptimizer(
-        #     init_value=0.3, final_value=0.9, method="exponantial_reverse", rate=0.05)
         Cr_optimiter = HyperOptimizer(
-            init_value=0.5, final_value=0.5, method="constant")
+            init_value=0.5, final_value=0.9, method="exponantial_reverse", rate=0.05)
+        # Cr_optimiter = HyperOptimizer(
+        #     init_value=0.5, final_value=0.5, method="constant")
         F_optimiter = HyperOptimizer(
             init_value=0.7, final_value=0.7, method="constant")
         # F_optimiter = HyperOptimizer(
